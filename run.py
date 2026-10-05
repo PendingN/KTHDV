@@ -1,5 +1,3 @@
-"""Chạy cả nhóm, một thành viên hoặc một service."""
-
 import argparse
 import getpass
 import importlib
@@ -13,7 +11,7 @@ from pathlib import Path
 
 import httpx
 
-from thanh_vien_1_python.common import NAMES, PORT_BASE, ROOT, database, execute, initialize, password_hash
+from python.common import NAMES, PORT_BASE, ROOT, database, execute, initialize, password_hash
 
 MEMBERS = {"1": NAMES[:2], "2": NAMES[2:4], "3": NAMES[4:]}
 
@@ -73,7 +71,7 @@ def main():
         if args.create_admin:
             email = (args.email or input("Email admin: ")).strip().lower()
             password = os.getenv("ADMIN_PASSWORD") or getpass.getpass("Mật khẩu admin (ít nhất 8 ký tự): ")
-            from thanh_vien_1_python.identity.main import Register
+            from python.identity.main import Register
             payload = Register(email=email, name="Admin", password=password)
             with database("identity") as db:
                 existing = execute(db, "SELECT id,role FROM users WHERE email=%s", (email,)).fetchone()
