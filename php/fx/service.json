@@ -1,0 +1,37 @@
+{
+  "schema": "\nCREATE TABLE IF NOT EXISTS rates (\n id INTEGER PRIMARY KEY AUTO_INCREMENT, base CHAR(3) NOT NULL, quote CHAR(3) NOT NULL,\n rate DECIMAL(30,12) NOT NULL, effective_on DATE NOT NULL, source VARCHAR(120) NOT NULL,\n UNIQUE(base,quote,effective_on)\n);\n",
+  "tables": {
+    "Tỷ giá": "SELECT * FROM rates ORDER BY effective_on DESC,id DESC LIMIT 200"
+  },
+  "actions": [
+    {
+      "label": "Nhập hoặc cập nhật tỷ giá",
+      "method": "POST",
+      "path": "/rates",
+      "body": {
+        "base": "USD",
+        "quote": "VND",
+        "rate": "25000",
+        "effective_on": "2026-10-05",
+        "source": "Nhập tay để demo"
+      }
+    },
+    {
+      "label": "Quy đổi ngoại tệ",
+      "method": "POST",
+      "path": "/convert",
+      "body": {
+        "base": "USD",
+        "quote": "VND",
+        "amount": "10",
+        "as_of": "2026-10-05"
+      }
+    },
+    {
+      "label": "Xem các tỷ giá",
+      "method": "GET",
+      "path": "/rates",
+      "body": null
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quản lý tài chính</title>
+  <style>
+    body { font: 16px Arial, sans-serif; margin: 24px auto; padding: 0 16px; max-width: 1100px; color: #222; background: #fafafa; }
+    h1 { font-size: 25px; } h2 { font-size: 19px; }
+    nav a { display: inline-block; margin: 0 14px 10px 0; color: #164f82; }
+    section { border: 1px solid #ccc; background: white; padding: 16px; margin: 18px 0; }
+    label { display: block; margin: 12px 0 5px; }
+    input, select, textarea, button { font: inherit; padding: 8px; box-sizing: border-box; }
+    input, select, textarea { width: 100%; max-width: 520px; border: 1px solid #aaa; }
+    button { cursor: pointer; margin: 12px 8px 0 0; }
+    table { border-collapse: collapse; min-width: 400px; width: 100%; font-size: 14px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #eee; } .scroll { overflow-x: auto; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f4f4f4; padding: 12px; }
+    [hidden] { display: none !important; } #status { min-height: 24px; color: #8b1d16; }
+    small { color: #555; } .fields { max-width: 520px; }
+  </style>
+</head>
+<body>
+  <h1 id="title">Quản lý tài chính cá nhân</h1>
+  <p>Bản thực hành 6 service · Python, JavaScript, PHP và MySQL</p>
+  <nav id="nav"></nav>
+  <p id="status" role="status" aria-live="polite"></p>
+  <section id="login-box">
+    <h2>Đăng nhập admin</h2>
+    <form id="login-form">
+      <label for="email">Email</label><input id="email" type="email" autocomplete="username" required>
+      <label for="password">Mật khẩu</label><input id="password" type="password" autocomplete="current-password" required>
+      <button>Đăng nhập</button>
+    </form>
+    <p><small>Tạo tài khoản admin bằng lệnh trong README. Tài khoản người dùng được thử API ở /docs.</small></p>
+  </section>
+  <main id="main" hidden>
+    <p><span id="account"></span> <button id="logout">Đăng xuất</button></p>
+    <section>
+      <h2>Chức năng</h2>
+      <label for="action">Chọn thao tác</label><select id="action"></select>
+      <form id="action-form">
+        <label for="path">Đường dẫn API</label><input id="path" required>
+        <p><small>Thay {id} bằng ID trong bảng. Các giá trị ví dụ có thể sửa trước khi lưu.</small></p>
+        <div class="fields" id="fields"></div>
+        <button id="submit">Thực hiện</button><button type="button" id="reload">Tải lại bảng</button>
+      </form>
+      <h2>Kết quả</h2><pre id="result">Chưa có thao tác.</pre>
+    </section>
+    <section><h2>Dữ liệu</h2><p><small>Bảng hiển thị tối đa 200 dòng gần nhất. Số tiền amount_minor: VND/JPY là đơn vị nguyên; USD/EUR là cent.</small></p><div id="tables"></div></section>
+  </main>
+  <script>
+    const $ = id => document.getElementById(id);
+    let token = sessionStorage.getItem('token') || '';
+    let actions = [];
+    let busy = false;
+    function status(message = '') { $('status').textContent = message; }
+    async function request(path, method = 'GET', body = undefined) {
+      const headers = { 'Authorization': 'Bearer ' + token };
+      if (body !== undefined) headers['Content-Type'] = 'application/json';
+      const response = await fetch(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+      if (!response.ok) {
+        let error = await response.json().catch(() => ({ detail: 'Service báo lỗi ' + response.status }));
+        if (response.status === 401) signedOut();
+        throw new Error(typeof error.detail === 'string' ? error.detail : JSON.stringify(error.detail));
+      }
+      if (response.headers.get('content-type')?.includes('text/csv')) {
+        const url = URL.createObjectURL(await response.blob());
+        const link = document.createElement('a'); link.href = url; link.download = 'report.csv'; link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        return { message: 'Đã tải report.csv' };
+      }
+      return response.json();
+    }
+    function signedOut() {
+      token = ''; sessionStorage.removeItem('token');
+      $('main').hidden = true; $('login-box').hidden = false; $('tables').replaceChildren(); $('result').textContent = 'Chưa có thao tác.';
+    }
+    async function reload() {
+      const data = await request('/admin/data'); $('tables').replaceChildren();
+      for (const [name, rows] of Object.entries(data)) {
+        const heading = document.createElement('h2'); heading.textContent = name; $('tables').append(heading);
+        if (!rows.length) { const empty = document.createElement('p'); empty.textContent = 'Chưa có dữ liệu.'; $('tables').append(empty); continue; }
+        const wrapper = document.createElement('div'); wrapper.className = 'scroll';
+        const table = document.createElement('table'); const head = table.createTHead().insertRow();
+        const keys = Object.keys(rows[0]);
+        for (const key of keys) { const cell = document.createElement('th'); cell.scope = 'col'; cell.textContent = key; head.append(cell); }
+        const body = table.createTBody();
+        for (const row of rows) { const tr = body.insertRow(); for (const key of keys) tr.insertCell().textContent = row[key] ?? ''; }
+        wrapper.append(table); $('tables').append(wrapper);
+      }
+    }
+    function selectAction() {
+      const action = actions[$('action').value]; if (!action) return;
+      $('path').value = action.path; $('fields').replaceChildren();
+      for (const [key, value] of Object.entries(action.body || {})) {
+        const label = document.createElement('label'); label.htmlFor = 'field-' + key; label.textContent = key;
+        const input = document.createElement('input'); input.id = 'field-' + key; input.name = key;
+        input.dataset.kind = typeof value; input.value = String(value);
+        if (key === 'password') input.type = 'password';
+        else if (key === 'email') input.type = 'email';
+        else if (typeof value === 'number') { input.type = 'number'; input.step = 'any'; }
+        else if (['occurred_on', 'start_on', 'end_on', 'deadline', 'next_due', 'effective_on', 'as_of'].includes(key)) input.type = 'date';
+        if (typeof value === 'boolean') { input.placeholder = 'true hoặc false'; input.pattern = 'true|false'; }
+        input.required = key !== 'note'; $('fields').append(label, input);
+      }
+      $('submit').textContent = action.method === 'GET' ? 'Xem kết quả' : 'Lưu / thực hiện';
+    }
+    async function openAdmin() {
+      const me = await request('/auth/me');
+      if (me.role !== 'admin') { signedOut(); throw new Error('Trang này cần tài khoản admin. Người dùng thử API ở /docs.'); }
+      const config = await request('/admin/actions'); actions = config.actions;
+      $('title').textContent = config.service + ' — quản trị'; $('account').textContent = me.email;
+      $('nav').replaceChildren();
+      for (const item of config.services) { const a = document.createElement('a'); a.href = item.url; a.textContent = item.name; $('nav').append(a); }
+      const docs = document.createElement('a'); docs.href = '/docs'; docs.textContent = 'Tài liệu API'; $('nav').append(docs);
+      $('action').replaceChildren(); actions.forEach((item, i) => { const option = document.createElement('option'); option.value = i; option.textContent = item.label; $('action').append(option); });
+      selectAction(); await reload(); $('main').hidden = false; $('login-box').hidden = true; status();
+    }
+    $('action').onchange = selectAction;
+    $('login-form').onsubmit = async event => {
+      event.preventDefault(); if (busy) return; busy = true;
+      try { const result = await request('/auth/login', 'POST', { email: $('email').value, password: $('password').value });
+        token = result.access_token; sessionStorage.setItem('token', token); $('password').value = ''; await openAdmin(); }
+      catch (error) { signedOut(); status(error.message); } finally { busy = false; }
+    };
+    $('action-form').onsubmit = async event => {
+      event.preventDefault(); if (busy) return;
+      const action = actions[$('action').value]; const path = $('path').value.trim();
+      if (!path.startsWith('/') || path.startsWith('//') || path.includes('://') || path.includes('{')) { status('Nhập đường dẫn nội bộ và thay {id} bằng số ID.'); return; }
+      if (action.method === 'DELETE' && !confirm('Dừng theo dõi bản ghi này?')) return;
+      busy = true; $('submit').disabled = true;
+      try { let body;
+        if (action.body !== null) { body = {}; for (const input of $('fields').querySelectorAll('input')) {
+          body[input.name] = input.dataset.kind === 'number' ? Number(input.value) : input.dataset.kind === 'boolean' ? input.value === 'true' : input.value; }
+        }
+        const result = await request(path, action.method, body); $('result').textContent = JSON.stringify(result, null, 2); status('Thành công.'); await reload();
+      } catch (error) { status(error.message); } finally { busy = false; $('submit').disabled = false; }
+    };
+    $('reload').onclick = () => reload().catch(error => status(error.message));
+    $('logout').onclick = async () => { try { await request('/auth/logout', 'POST'); } catch (error) { status(error.message); } signedOut(); };
+    if (token) openAdmin().catch(error => { signedOut(); status(error.message); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+data/
+.env
+config.local.json
+node_modules/
+Diagram/
+Usecase&UML/

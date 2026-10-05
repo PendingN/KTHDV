@@ -1,0 +1,71 @@
+{
+  "schema": "\nCREATE TABLE IF NOT EXISTS subscriptions (\n id INTEGER PRIMARY KEY AUTO_INCREMENT, user_id INTEGER NOT NULL, name VARCHAR(120) NOT NULL,\n amount_minor BIGINT NOT NULL, currency CHAR(3) NOT NULL, period VARCHAR(10) NOT NULL,\n next_due DATE NOT NULL, anchor_day INTEGER NOT NULL, remind_days INTEGER NOT NULL,\n active INTEGER NOT NULL DEFAULT 1\n);\nCREATE TABLE IF NOT EXISTS notifications (\n id INTEGER PRIMARY KEY AUTO_INCREMENT, user_id INTEGER NOT NULL, message VARCHAR(500) NOT NULL,\n dedup_key VARCHAR(160) NOT NULL UNIQUE, created_on DATE NOT NULL, is_read INTEGER NOT NULL DEFAULT 0\n);\nCREATE TABLE IF NOT EXISTS payments (\n id INTEGER PRIMARY KEY AUTO_INCREMENT, subscription_id INTEGER NOT NULL, due_on DATE NOT NULL,\n paid_on DATE NOT NULL, amount_minor BIGINT NOT NULL, UNIQUE(subscription_id,due_on),\n FOREIGN KEY(subscription_id) REFERENCES subscriptions(id)\n);\n",
+  "tables": {
+    "Khoản định kỳ": "SELECT * FROM subscriptions ORDER BY id DESC LIMIT 200",
+    "Thông báo": "SELECT * FROM notifications ORDER BY id DESC LIMIT 200"
+  },
+  "actions": [
+    {
+      "label": "Tạo khoản định kỳ",
+      "method": "POST",
+      "path": "/subscriptions",
+      "body": {
+        "name": "Internet",
+        "amount": "200000",
+        "currency": "VND",
+        "period": "monthly",
+        "next_due": "2026-10-07",
+        "remind_days": 3
+      }
+    },
+    {
+      "label": "Sửa khoản định kỳ",
+      "method": "PUT",
+      "path": "/subscriptions/{id}",
+      "body": {
+        "name": "Internet",
+        "amount": "220000",
+        "currency": "VND",
+        "period": "monthly",
+        "next_due": "2026-10-07",
+        "remind_days": 3
+      }
+    },
+    {
+      "label": "Dừng theo dõi",
+      "method": "DELETE",
+      "path": "/subscriptions/{id}",
+      "body": null
+    },
+    {
+      "label": "Đánh dấu đã thanh toán",
+      "method": "POST",
+      "path": "/subscriptions/{id}/paid",
+      "body": null
+    },
+    {
+      "label": "Kiểm tra lịch nhắc ngay",
+      "method": "POST",
+      "path": "/reminders/check",
+      "body": null
+    },
+    {
+      "label": "Xem thông báo của tôi",
+      "method": "GET",
+      "path": "/notifications",
+      "body": null
+    },
+    {
+      "label": "Đánh dấu đã đọc",
+      "method": "PATCH",
+      "path": "/notifications/{id}/read",
+      "body": null
+    },
+    {
+      "label": "Tìm gợi ý chi định kỳ",
+      "method": "GET",
+      "path": "/suggestions",
+      "body": null
+    }
+  ]
+}

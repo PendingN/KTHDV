@@ -1,0 +1,32 @@
+{
+  "schema": "\nCREATE TABLE IF NOT EXISTS report_requests (\n id INTEGER PRIMARY KEY AUTO_INCREMENT, user_id INTEGER NOT NULL,\n start_on DATE NOT NULL, end_on DATE NOT NULL, created_on DATE NOT NULL\n);\n",
+  "tables": {
+    "Lịch sử xem báo cáo": "SELECT * FROM report_requests ORDER BY id DESC LIMIT 200"
+  },
+  "actions": [
+    {
+      "label": "Dashboard tháng 10",
+      "method": "GET",
+      "path": "/dashboard?start=2026-10-01&end=2026-10-31",
+      "body": null
+    },
+    {
+      "label": "Báo cáo thu chi",
+      "method": "GET",
+      "path": "/reports?start=2026-10-01&end=2026-10-31",
+      "body": null
+    },
+    {
+      "label": "So sánh với tháng trước",
+      "method": "GET",
+      "path": "/compare?start=2026-10-01&end=2026-10-31&previous_start=2026-09-01&previous_end=2026-09-30",
+      "body": null
+    },
+    {
+      "label": "Xuất báo cáo CSV",
+      "method": "GET",
+      "path": "/reports.csv?start=2026-10-01&end=2026-10-31",
+      "body": null
+    }
+  ]
+}

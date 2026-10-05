@@ -1,0 +1,97 @@
+{
+  "schema": "\nCREATE TABLE IF NOT EXISTS budgets (\n id INTEGER PRIMARY KEY AUTO_INCREMENT, user_id INTEGER NOT NULL, name VARCHAR(120) NOT NULL,\n category_id INTEGER NOT NULL, currency CHAR(3) NOT NULL, limit_minor BIGINT NOT NULL,\n start_on DATE NOT NULL, end_on DATE NOT NULL, threshold INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 1\n);\nCREATE TABLE IF NOT EXISTS goals (\n id INTEGER PRIMARY KEY AUTO_INCREMENT, user_id INTEGER NOT NULL, name VARCHAR(120) NOT NULL,\n currency CHAR(3) NOT NULL, target_minor BIGINT NOT NULL, saved_minor BIGINT NOT NULL DEFAULT 0,\n deadline DATE NOT NULL, active INTEGER NOT NULL DEFAULT 1\n);\nCREATE TABLE IF NOT EXISTS goal_contributions (\n id INTEGER PRIMARY KEY AUTO_INCREMENT, goal_id INTEGER NOT NULL, amount_minor BIGINT NOT NULL,\n created_on DATE NOT NULL, FOREIGN KEY(goal_id) REFERENCES goals(id)\n);\nCREATE TABLE IF NOT EXISTS alerts (\n id INTEGER PRIMARY KEY AUTO_INCREMENT, budget_id INTEGER NOT NULL, threshold INTEGER NOT NULL,\n UNIQUE(budget_id,threshold), FOREIGN KEY(budget_id) REFERENCES budgets(id)\n);\n",
+  "tables": {
+    "Ngân sách": "SELECT * FROM budgets ORDER BY id DESC LIMIT 200",
+    "Mục tiêu": "SELECT * FROM goals ORDER BY id DESC LIMIT 200"
+  },
+  "actions": [
+    {
+      "label": "Tạo ngân sách",
+      "method": "POST",
+      "path": "/budgets",
+      "body": {
+        "name": "Ăn uống tháng 10",
+        "category_id": 1,
+        "currency": "VND",
+        "limit_amount": "1000000",
+        "start_on": "2026-10-01",
+        "end_on": "2026-10-31",
+        "threshold": 80
+      }
+    },
+    {
+      "label": "Xem mức sử dụng ngân sách",
+      "method": "GET",
+      "path": "/budgets",
+      "body": null
+    },
+    {
+      "label": "Kiểm tra và gửi cảnh báo",
+      "method": "POST",
+      "path": "/budgets/evaluate",
+      "body": null
+    },
+    {
+      "label": "Sửa ngân sách",
+      "method": "PUT",
+      "path": "/budgets/{id}",
+      "body": {
+        "name": "Ăn uống tháng 10",
+        "category_id": 1,
+        "currency": "VND",
+        "limit_amount": "1500000",
+        "start_on": "2026-10-01",
+        "end_on": "2026-10-31",
+        "threshold": 80
+      }
+    },
+    {
+      "label": "Dừng ngân sách",
+      "method": "DELETE",
+      "path": "/budgets/{id}",
+      "body": null
+    },
+    {
+      "label": "Tạo mục tiêu",
+      "method": "POST",
+      "path": "/goals",
+      "body": {
+        "name": "Mua laptop",
+        "currency": "VND",
+        "target_amount": "15000000",
+        "deadline": "2027-01-01"
+      }
+    },
+    {
+      "label": "Thêm tích lũy cho mục tiêu",
+      "method": "POST",
+      "path": "/goals/{id}/contributions",
+      "body": {
+        "amount": "500000"
+      }
+    },
+    {
+      "label": "Xem tiến độ mục tiêu",
+      "method": "GET",
+      "path": "/goals",
+      "body": null
+    },
+    {
+      "label": "Sửa mục tiêu",
+      "method": "PUT",
+      "path": "/goals/{id}",
+      "body": {
+        "name": "Mua laptop",
+        "currency": "VND",
+        "target_amount": "18000000",
+        "deadline": "2027-01-01"
+      }
+    },
+    {
+      "label": "Kết thúc mục tiêu",
+      "method": "DELETE",
+      "path": "/goals/{id}",
+      "body": null
+    }
+  ]
+}
