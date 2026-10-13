@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quản lý tài chính cá nhân</title>
+  <style>
+    body { font: 16px Arial, sans-serif; margin: 0 auto; padding: 16px; max-width: 1100px; color: #222; background: #fafafa; }
+    header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+    h1 { font-size: 24px; margin: 8px 0; } h2 { font-size: 19px; margin: 0 0 8px; } h3 { font-size: 16px; margin: 18px 0 4px; }
+    nav#tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    nav#tabs button.active { background: #164f82; color: white; border-color: #164f82; }
+    .card { border: 1px solid #ccc; background: white; padding: 16px; margin: 14px 0; border-radius: 4px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+    .row > label { flex: 1 1 180px; }
+    label { display: block; margin: 10px 0 4px; }
+    input, select, button { font: inherit; padding: 8px; box-sizing: border-box; }
+    input, select { width: 100%; max-width: 520px; border: 1px solid #aaa; background: white; }
+    button { cursor: pointer; margin: 6px 6px 0 0; border: 1px solid #888; background: #f3f3f3; border-radius: 3px; }
+    button.danger { color: #8b1d16; }
+    button:disabled { opacity: .6; cursor: default; }
+    .actions { margin-top: 8px; }
+    .scroll { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; min-width: 420px; font-size: 14px; }
+    th, td { border: 1px solid #ccc; padding: 7px; text-align: left; vertical-align: top; }
+    th { background: #eee; }
+    #notice { min-height: 24px; margin: 8px 0; } #notice.error { color: #8b1d16; } #notice.ok { color: #1d6b2f; }
+    .hint { color: #555; font-size: 14px; }
+    .result { white-space: pre-wrap; background: #f4f4f4; padding: 10px; border-radius: 3px; }
+    [hidden] { display: none !important; }
+    @media (max-width: 600px) { body { padding: 12px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Quản lý tài chính cá nhân</h1>
+    <div id="session" hidden>
+      <span id="account"></span>
+      <a id="admin-link" href="/admin" hidden>Trang quản trị</a>
+      <button id="logout" type="button">Đăng xuất</button>
+    </div>
+  </header>
+  <p id="notice" role="status" aria-live="polite"></p>
+
+  <section id="auth" class="grid">
+    <div class="card"><h2>Đăng nhập</h2><div id="login-form"></div></div>
+    <div class="card"><h2>Tạo tài khoản</h2><div id="register-form"></div></div>
+  </section>
+
+  <div id="app" hidden>
+    <nav id="tabs">
+      <button type="button" data-tab="overview">Tổng quan</button>
+      <button type="button" data-tab="wallets">Ví &amp; danh mục</button>
+      <button type="button" data-tab="transactions">Giao dịch</button>
+      <button type="button" data-tab="budgets">Ngân sách</button>
+      <button type="button" data-tab="goals">Mục tiêu</button>
+      <button type="button" data-tab="subscriptions">Định kỳ</button>
+      <button type="button" data-tab="notifications">Thông báo</button>
+      <button type="button" data-tab="reports">Báo cáo</button>
+      <button type="button" data-tab="rates">Tỷ giá</button>
+    </nav>
+
+    <section id="tab-overview" class="tab card" hidden>
+      <h2>Tổng quan</h2>
+      <div class="row">
+        <label>Từ ngày <input type="date" id="ov-start" data-month="start"></label>
+        <label>Đến ngày <input type="date" id="ov-end" data-month="end"></label>
+        <button type="button" id="ov-refresh">Xem</button>
+      </div>
+      <p class="hint" id="ov-count"></p>
+      <h3>Thu chi trong kỳ</h3><div id="ov-totals"></div>
+      <h3>Ví tiền</h3><div id="ov-wallets"></div>
+      <h3>Tổng số dư theo tiền tệ</h3><div id="ov-wallet-totals"></div>
+    </section>
+
+    <section id="tab-wallets" class="tab" hidden>
+      <div class="grid">
+        <div class="card">
+          <h2>Ví tiền</h2>
+          <div id="wallet-table"></div>
+          <h3>Thêm ví</h3><div id="wallet-create"></div>
+          <h3>Sửa ví</h3><div id="wallet-edit"></div>
+        </div>
+        <div class="card">
+          <h2>Danh mục</h2>
+          <div id="category-table"></div>
+          <h3>Thêm danh mục</h3><div id="category-create"></div>
+          <h3>Sửa danh mục</h3><div id="category-edit"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-transactions" class="tab" hidden>
+      <div class="card">
+        <h2>Giao dịch</h2>
+        <div class="row">
+          <label>Từ ngày <input type="date" id="tx-start" data-month="start"></label>
+          <label>Đến ngày <input type="date" id="tx-end" data-month="end"></label>
+          <button type="button" id="tx-refresh">Xem</button>
+        </div>
+        <div id="tx-table"></div>
+      </div>
+      <div class="grid">
+        <div class="card"><h2 id="tx-title">Ghi giao dịch</h2><div id="tx-form"></div></div>
+        <div class="card"><h2>Chuyển giữa ví</h2><div id="transfer-form"></div></div>
+      </div>
+    </section>
+
+    <section id="tab-budgets" class="tab" hidden>
+      <div class="card">
+        <h2>Ngân sách</h2>
+        <button type="button" id="budget-evaluate">Kiểm tra và gửi cảnh báo</button>
+        <div id="budget-table"></div>
+      </div>
+      <div class="card"><h2 id="budget-title">Thêm ngân sách</h2><div id="budget-form"></div></div>
+    </section>
+
+    <section id="tab-goals" class="tab" hidden>
+      <div class="card"><h2>Mục tiêu</h2><div id="goal-table"></div></div>
+      <div class="grid">
+        <div class="card"><h2 id="goal-title">Thêm mục tiêu</h2><div id="goal-form"></div></div>
+        <div class="card"><h2>Thêm tiền tích lũy</h2><div id="contribution-form"></div></div>
+      </div>
+    </section>
+
+    <section id="tab-subscriptions" class="tab" hidden>
+      <div class="card">
+        <h2>Khoản định kỳ</h2>
+        <button type="button" id="sub-check">Kiểm tra nhắc hạn</button>
+        <button type="button" id="sub-suggest">Gợi ý từ lịch sử chi</button>
+        <div id="sub-table"></div>
+        <div id="sub-suggestions"></div>
+      </div>
+      <div class="card"><h2 id="sub-title">Thêm khoản định kỳ</h2><div id="sub-form"></div></div>
+    </section>
+
+    <section id="tab-notifications" class="tab" hidden>
+      <div class="card"><h2>Thông báo</h2><div id="notification-table"></div></div>
+    </section>
+
+    <section id="tab-reports" class="tab" hidden>
+      <div class="card">
+        <h2>Báo cáo thu chi</h2>
+        <div class="row">
+          <label>Từ ngày <input type="date" id="rep-start" data-month="start"></label>
+          <label>Đến ngày <input type="date" id="rep-end" data-month="end"></label>
+        </div>
+        <button type="button" id="rep-view">Xem báo cáo</button>
+        <button type="button" id="rep-csv">Tải CSV</button>
+      </div>
+      <div class="card">
+        <h2>So sánh với kỳ trước</h2>
+        <div class="row">
+          <label>Kỳ trước từ <input type="date" id="rep-prev-start" data-month="prev-start"></label>
+          <label>Đến <input type="date" id="rep-prev-end" data-month="prev-end"></label>
+        </div>
+        <button type="button" id="rep-compare">So sánh</button>
+      </div>
+      <div class="card"><div id="report-output"></div></div>
+    </section>
+
+    <section id="tab-rates" class="tab" hidden>
+      <div class="card"><h2>Tỷ giá</h2><div id="rate-table"></div></div>
+      <div class="grid">
+        <div class="card"><h2>Quy đổi tiền tệ</h2><div id="convert-form"></div><div id="convert-result"></div></div>
+        <div class="card" id="rate-section" hidden><h2>Nhập tỷ giá (admin)</h2><div id="rate-form"></div></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const PORTS = {identity: 8001, ledger: 8002, planning: 8003, recurring: 8004, fx: 8005, reporting: 8006};
+    const SCALES = {VND: 0, USD: 2, EUR: 2, JPY: 0};
+    const CURRENCY_OPTIONS = Object.keys(SCALES).map(code => [code, code]);
+    const KIND = {income: 'Thu', expense: 'Chi', transfer: 'Chuyển ví'};
+    const PERIOD = {weekly: 'Hàng tuần', monthly: 'Hàng tháng', yearly: 'Hàng năm'};
+    const ACTIVE_OPTIONS = [['true', 'Đang dùng'], ['false', 'Ngừng dùng']];
+    const AMOUNT_ATTRS = {inputMode: 'decimal', pattern: '(0|[1-9][0-9]*)(\\.[0-9]+)?', placeholder: 'Ví dụ 50000 hoặc 10.50'};
+    const LOADERS = {overview: loadOverview, wallets: loadWallets, transactions: loadTransactions, budgets: loadBudgets,
+      goals: loadGoals, subscriptions: loadSubscriptions, notifications: loadNotifications, reports: () => {}, rates: loadRates};
+
+    const $ = id => document.getElementById(id);
+    const on = value => Number(value) === 1;
+    let token = sessionStorage.getItem('kthdv_token') || '';
+    let me = null;
+    let wallets = [], categories = [];
+
+    // ---- Định dạng ngày và tiền
+    const pad = n => String(n).padStart(2, '0');
+    const ymd = date => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    const monthStart = (offset = 0) => ymd(new Date(new Date().getFullYear(), new Date().getMonth() + offset, 1));
+    const monthEnd = (offset = 0) => ymd(new Date(new Date().getFullYear(), new Date().getMonth() + offset + 1, 0));
+    function money(minor, currency) {
+      const digits = SCALES[currency] ?? 0;
+      return (Number(minor) / 10 ** digits).toLocaleString('vi-VN', {minimumFractionDigits: digits, maximumFractionDigits: digits}) + ' ' + currency;
+    }
+    function plain(minor, currency) { const digits = SCALES[currency] ?? 0; return (Number(minor) / 10 ** digits).toFixed(digits); }
+    const nameOf = (list, id) => list.find(item => item.id === id)?.name ?? `#${id}`;
+    const walletOptions = list => list.filter(w => on(w.active)).map(w => [String(w.id), `${w.name} (${w.currency})`]);
+    const categoryOptions = (kind) => categories.filter(c => on(c.active) && (!kind || c.kind === kind)).map(c => [String(c.id), c.name]);
+
+    // ---- Gọi API và thông báo
+    function notice(message, ok = false) { const el = $('notice'); el.textContent = message; el.className = message ? (ok ? 'ok' : 'error') : ''; }
+    async function run(task) {
+      notice('');
+      try { await task(); } catch (error) { notice(error.message); }
+    }
+    async function api(service, path, {method = 'GET', body, query, headers = {}, raw = false} = {}) {
+      const url = new URL(`http://127.0.0.1:${PORTS[service]}${path}`);
+      for (const [key, value] of Object.entries(query || {})) if (value !== undefined && value !== '') url.searchParams.set(key, value);
+      const init = {method, headers: {...headers}};
+      if (token) init.headers.Authorization = 'Bearer ' + token;
+      if (body !== undefined) { init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(body); }
+      let response;
+      try { response = await fetch(url, init); }
+      catch { throw new Error(`Không kết nối được service ${service} (cổng ${PORTS[service]}). Kiểm tra run.py đang chạy.`); }
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        const detail = Array.isArray(data.detail) ? data.detail.map(item => item.msg).join('; ') : data.detail;
+        if (response.status === 401 && token) signedOut();
+        throw new Error(typeof detail === 'string' ? detail : `Lỗi ${response.status}`);
+      }
+      if (raw) return response;
+      return response.status === 204 ? null : response.json();
+    }
+
+    // ---- Thành phần giao diện
+    function button(label, onClick, className = '') {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = label; if (className) b.className = className;
+      if (onClick) b.onclick = () => run(onClick);
+      return b;
+    }
+    function cell(...nodes) { const div = document.createElement('div'); div.append(...nodes); return div; }
+    function hint(text) { const p = document.createElement('p'); p.className = 'hint'; p.textContent = text; return p; }
+    function mount(id, ...nodes) { $(id).replaceChildren(...nodes); }
+    function table(headers, rows, empty = 'Chưa có dữ liệu.') {
+      if (!rows.length) return hint(empty);
+      const wrap = document.createElement('div'); wrap.className = 'scroll';
+      const t = document.createElement('table'); const head = t.createTHead().insertRow();
+      for (const h of headers) { const th = document.createElement('th'); th.textContent = h; head.append(th); }
+      const body = t.createTBody();
+      for (const row of rows) {
+        const tr = body.insertRow();
+        for (const value of row) { const td = tr.insertCell(); if (value instanceof Node) td.append(value); else td.textContent = value ?? ''; }
+      }
+      wrap.append(t); return wrap;
+    }
+    function totalsTable(byCurrency) {
+      return table(['Tiền tệ', 'Thu', 'Chi', 'Ròng'], Object.entries(byCurrency).map(([unit, t]) => [unit, t.income, t.expense, t.net]), 'Chưa có giao dịch trong kỳ.');
+    }
+    function form(fields, submitLabel, onSubmit, extras = []) {
+      const f = document.createElement('form');
+      for (const d of fields) {
+        const label = document.createElement('label'); label.textContent = d.label;
+        let input;
+        if (d.options) {
+          input = document.createElement('select');
+          for (const [value, text] of d.options) input.append(new Option(text, value));
+        } else {
+          input = document.createElement('input'); input.type = d.type || 'text';
+        }
+        input.name = d.name; input.required = d.required ?? true;
+        if (d.attrs) Object.assign(input, d.attrs);
+        if (d.value !== undefined && d.value !== null) input.value = d.value;
+        label.append(input); f.append(label);
+      }
+      const row = document.createElement('div'); row.className = 'actions';
+      const submit = document.createElement('button'); submit.textContent = submitLabel;
+      row.append(submit, ...extras); f.append(row);
+      f.onsubmit = event => {
+        event.preventDefault();
+        run(async () => {
+          submit.disabled = true;
+          try { await onSubmit(Object.fromEntries(new FormData(f).entries())); } finally { submit.disabled = false; }
+        });
+      };
+      return f;
+    }
+
+    // ---- Đăng nhập và phiên
+    function loginForm() {
+      return form([
+        {name: 'email', label: 'Email', type: 'email', attrs: {autocomplete: 'username'}},
+        {name: 'password', label: 'Mật khẩu', type: 'password', attrs: {autocomplete: 'current-password'}},
+      ], 'Đăng nhập', async v => {
+        const result = await api('identity', '/auth/login', {method: 'POST', body: {email: v.email, password: v.password}});
+        token = result.access_token; sessionStorage.setItem('kthdv_token', token);
+        await enter();
+      });
+    }
+    function registerForm() {
+      return form([
+        {name: 'name', label: 'Họ tên', attrs: {maxLength: 120}},
+        {name: 'email', label: 'Email', type: 'email'},
+        {name: 'password', label: 'Mật khẩu (ít nhất 8 ký tự)', type: 'password', attrs: {minLength: 8, autocomplete: 'new-password'}},
+      ], 'Tạo tài khoản', async v => {
+        await api('identity', '/users', {method: 'POST', body: {name: v.name, email: v.email, password: v.password}});
+        notice('Đã tạo tài khoản. Hãy đăng nhập.', true);
+      });
+    }
+    async function enter() {
+      me = await api('identity', '/auth/me');
+      $('account').textContent = `${me.name} · ${me.email}`;
+      $('session').hidden = false; $('admin-link').hidden = me.role !== 'admin';
+      $('auth').hidden = true; $('app').hidden = false;
+      await showTab('overview');
+    }
+    function signedOut() {
+      token = ''; me = null; sessionStorage.removeItem('kthdv_token');
+      $('session').hidden = true; $('app').hidden = true; $('auth').hidden = false;
+      mount('login-form', loginForm()); mount('register-form', registerForm());
+    }
+    async function showTab(name) {
+      for (const section of document.querySelectorAll('.tab')) section.hidden = section.id !== `tab-${name}`;
+      for (const b of document.querySelectorAll('#tabs button')) b.classList.toggle('active', b.dataset.tab === name);
+      await run(LOADERS[name]);
+    }
+
+    // ---- Tổng quan
+    async function loadOverview() {
+      const data = await api('reporting', '/dashboard', {query: {start: $('ov-start').value, end: $('ov-end').value}});
+      mount('ov-totals', totalsTable(data.by_currency));
+      $('ov-count').textContent = `${data.record_count} bản ghi trong kỳ`;
+      mount('ov-wallets', table(['Ví', 'Tiền tệ', 'Số dư'], data.wallets.map(w => [w.name, w.currency, money(w.balance_minor, w.currency)]), 'Chưa có ví.'));
+      mount('ov-wallet-totals', table(['Tiền tệ', 'Tổng số dư'], Object.entries(data.wallet_total_minor_by_currency).map(([unit, total]) => [unit, money(total, unit)])));
+    }
+
+    // ---- Ví và danh mục
+    const ACTIVE_TEXT = active => on(active) ? 'Đang dùng' : 'Ngừng';
+    async function loadWallets() {
+      [wallets, categories] = await Promise.all([api('ledger', '/wallets'), api('ledger', '/categories')]);
+      mount('wallet-table', table(['Tên ví', 'Tiền tệ', 'Số dư', 'Trạng thái', ''], wallets.map(w =>
+        [w.name, w.currency, money(w.balance_minor, w.currency), ACTIVE_TEXT(w.active), cell(button('Sửa', () => editWallet(w)))])));
+      mount('category-table', table(['Tên danh mục', 'Loại', 'Trạng thái', ''], categories.map(c =>
+        [c.name, KIND[c.kind], ACTIVE_TEXT(c.active), cell(button('Sửa', () => editCategory(c)))])));
+      mount('wallet-create', form([
+        {name: 'name', label: 'Tên ví', attrs: {maxLength: 120}},
+        {name: 'currency', label: 'Tiền tệ', options: CURRENCY_OPTIONS},
+      ], 'Tạo ví', async v => {
+        await api('ledger', '/wallets', {method: 'POST', body: {name: v.name, currency: v.currency}});
+        notice('Đã tạo ví.', true); await loadWallets();
+      }));
+      mount('category-create', form([
+        {name: 'name', label: 'Tên danh mục', attrs: {maxLength: 120}},
+        {name: 'kind', label: 'Loại', options: [['expense', 'Chi'], ['income', 'Thu']]},
+      ], 'Tạo danh mục', async v => {
+        await api('ledger', '/categories', {method: 'POST', body: {name: v.name, kind: v.kind}});
+        notice('Đã tạo danh mục.', true); await loadWallets();
+      }));
+      mount('wallet-edit', hint('Chọn "Sửa" ở bảng ví để đổi tên hoặc ngừng dùng.'));
+      mount('category-edit', hint('Chọn "Sửa" ở bảng danh mục để đổi tên hoặc ngừng dùng.'));
+    }
+    function editWallet(w) {
+      mount('wallet-edit', form([
+        {name: 'name', label: 'Tên ví', value: w.name, attrs: {maxLength: 120}},
+        {name: 'active', label: 'Trạng thái', options: ACTIVE_OPTIONS, value: on(w.active) ? 'true' : 'false'},
+      ], 'Lưu ví', async v => {
+        await api('ledger', `/wallets/${w.id}`, {method: 'PATCH', body: {name: v.name, active: v.active === 'true'}});
+        notice('Đã cập nhật ví.', true); await loadWallets();
+      }, [button('Hủy', loadWallets)]));
+    }
+    function editCategory(c) {
+      mount('category-edit', form([
+        {name: 'name', label: 'Tên danh mục', value: c.name, attrs: {maxLength: 120}},
+        {name: 'active', label: 'Trạng thái', options: ACTIVE_OPTIONS, value: on(c.active) ? 'true' : 'false'},
+      ], 'Lưu danh mục', async v => {
+        await api('ledger', `/categories/${c.id}`, {method: 'PATCH', body: {name: v.name, active: v.active === 'true'}});
+        notice('Đã cập nhật danh mục.', true); await loadWallets();
+      }, [button('Hủy', loadWallets)]));
+    }
+
+    // ---- Giao dịch
+    async function loadTransactions() {
+      [wallets, categories] = await Promise.all([api('ledger', '/wallets'), api('ledger', '/categories')]);
+      const list = await api('ledger', '/transactions', {query: {start: $('tx-start').value, end: $('tx-end').value, limit: 500}});
+      mount('tx-table', table(['Ngày', 'Loại', 'Ví', 'Danh mục', 'Số tiền', 'Ghi chú', ''], list.map(t => {
+        const label = (KIND[t.kind] ?? t.kind) + (t.reversal_of ? ' (đảo)' : '');
+        const editable = ['income', 'expense'].includes(t.kind) && !t.reversal_of;
+        return [t.occurred_on, label, nameOf(wallets, t.wallet_id), t.category_id ? nameOf(categories, t.category_id) : '—',
+          money(t.amount_minor, t.currency), t.note,
+          editable ? cell(button('Điều chỉnh', () => editTransaction(t)), button('Hủy giao dịch', () => reverseTransaction(t), 'danger')) : ''];
+      }), 'Chưa có giao dịch trong kỳ.'));
+      mount('tx-form', transactionForm());
+      mount('transfer-form', transferForm());
+    }
+    function transactionForm(t = null) {
+      $('tx-title').textContent = t ? 'Điều chỉnh giao dịch' : 'Ghi giao dịch';
+      const kind = t?.kind ?? 'expense';
+      const f = form([
+        {name: 'kind', label: 'Loại', options: [['expense', 'Chi'], ['income', 'Thu']], value: kind},
+        {name: 'wallet_id', label: 'Ví', options: walletOptions(wallets), value: t ? String(t.wallet_id) : undefined},
+        {name: 'category_id', label: 'Danh mục', options: categoryOptions(kind), value: t?.category_id ? String(t.category_id) : undefined},
+        {name: 'amount', label: 'Số tiền', attrs: AMOUNT_ATTRS, value: t ? plain(t.amount_minor, t.currency) : undefined},
+        {name: 'occurred_on', label: 'Ngày', type: 'date', value: t?.occurred_on ?? ymd(new Date())},
+        {name: 'note', label: 'Ghi chú', required: false, attrs: {maxLength: 500}, value: t?.note ?? ''},
+      ], t ? 'Lưu điều chỉnh' : 'Ghi giao dịch', async v => {
+        const body = {wallet_id: Number(v.wallet_id), category_id: Number(v.category_id), kind: v.kind,
+          amount: v.amount, occurred_on: v.occurred_on, note: v.note};
+        if (t) {
+          await api('ledger', `/transactions/${t.id}/adjust`, {method: 'POST', body});
+          notice('Đã điều chỉnh giao dịch (bút toán đảo và giao dịch mới).', true);
+        } else {
+          await api('ledger', '/transactions', {method: 'POST', body, headers: {'Idempotency-Key': crypto.randomUUID()}});
+          notice('Đã ghi giao dịch.', true);
+        }
+        await loadTransactions();
+      }, t ? [button('Hủy', loadTransactions)] : []);
+      const warning = hint('');
+      const checkCategories = () => {
+        const kind = f.elements.kind.value;
+        const missing = !categoryOptions(kind).length;
+        warning.textContent = missing ? `Chưa có danh mục ${kind === 'expense' ? 'chi' : 'thu'} để chọn. Hãy tạo ở tab Ví & danh mục.` : '';
+        return missing;
+      };
+      f.elements.kind.onchange = () => {
+        f.elements.category_id.replaceChildren(...categoryOptions(f.elements.kind.value).map(([value, text]) => new Option(text, value)));
+        checkCategories();
+      };
+      checkCategories();
+      return cell(f, warning);
+    }
+    function transferForm() {
+      return form([
+        {name: 'from_wallet', label: 'Từ ví', options: walletOptions(wallets)},
+        {name: 'to_wallet', label: 'Đến ví', options: walletOptions(wallets)},
+        {name: 'amount', label: 'Số tiền', attrs: AMOUNT_ATTRS},
+        {name: 'occurred_on', label: 'Ngày', type: 'date', value: ymd(new Date())},
+      ], 'Chuyển tiền', async v => {
+        await api('ledger', '/transfers', {method: 'POST', body: {from_wallet: Number(v.from_wallet), to_wallet: Number(v.to_wallet), amount: v.amount, occurred_on: v.occurred_on}});
+        notice('Đã chuyển tiền.', true); await loadTransactions();
+      });
+    }
+    function editTransaction(t) { mount('tx-form', transactionForm(t)); }
+    async function reverseTransaction(t) {
+      if (!confirm('Hủy giao dịch này bằng một bút toán đảo?')) return;
+      await api('ledger', `/transactions/${t.id}/reverse`, {method: 'POST'});
+      notice('Đã hủy giao dịch bằng bút toán đảo.', true); await loadTransactions();
+    }
+
+    // ---- Ngân sách
+    async function loadBudgets() {
+      const [categoryList, budgets] = await Promise.all([api('ledger', '/categories'), api('planning', '/budgets')]);
+      categories = categoryList;
+      mount('budget-table', table(['Tên', 'Danh mục', 'Tiền tệ', 'Hạn mức', 'Đã chi', 'Đã dùng', 'Ngưỡng', 'Kỳ', 'Trạng thái', ''], budgets.map(b =>
+        [b.name, nameOf(categories, b.category_id), b.currency, money(b.limit_minor, b.currency), money(b.spent_minor, b.currency),
+          `${b.used_percent}%`, `${b.threshold}%`, `${b.start_on} → ${b.end_on}`, on(b.active) ? 'Đang dùng' : 'Đã dừng',
+          cell(button('Sửa', () => editBudget(b)), on(b.active) ? button('Dừng', () => stopBudget(b), 'danger') : '')]), 'Chưa có ngân sách.'));
+      mount('budget-form', budgetForm());
+    }
+    function needCategory(kind) {
+      const text = kind === 'expense' ? 'chi' : 'thu';
+      return cell(hint(`Chưa có danh mục ${text} đang dùng nên không chọn được. Hãy tạo danh mục ${text} trước.`),
+        button('Đến Ví & danh mục', () => showTab('wallets')));
+    }
+    function budgetForm(b = null) {
+      $('budget-title').textContent = b ? 'Sửa ngân sách' : 'Thêm ngân sách';
+      if (!b && !categoryOptions('expense').length) return needCategory('expense');
+      return form([
+        {name: 'name', label: 'Tên ngân sách', value: b?.name ?? '', attrs: {maxLength: 120}},
+        {name: 'category_id', label: 'Danh mục chi', options: categoryOptions('expense'), value: b ? String(b.category_id) : undefined},
+        {name: 'currency', label: 'Tiền tệ', options: CURRENCY_OPTIONS, value: b?.currency ?? 'VND'},
+        {name: 'limit_amount', label: 'Hạn mức', attrs: AMOUNT_ATTRS, value: b ? plain(b.limit_minor, b.currency) : undefined},
+        {name: 'start_on', label: 'Từ ngày', type: 'date', value: b?.start_on ?? monthStart()},
+        {name: 'end_on', label: 'Đến ngày', type: 'date', value: b?.end_on ?? monthEnd()},
+        {name: 'threshold', label: 'Ngưỡng cảnh báo (%)', type: 'number', attrs: {min: 1, max: 100, step: 1}, value: b?.threshold ?? 80},
+      ], b ? 'Lưu ngân sách' : 'Tạo ngân sách', async v => {
+        const body = {name: v.name, category_id: Number(v.category_id), currency: v.currency, limit_amount: v.limit_amount,
+          start_on: v.start_on, end_on: v.end_on, threshold: Number(v.threshold)};
+        if (b) { await api('planning', `/budgets/${b.id}`, {method: 'PUT', body}); notice('Đã cập nhật ngân sách.', true); }
+        else { await api('planning', '/budgets', {method: 'POST', body}); notice('Đã tạo ngân sách.', true); }
+        await loadBudgets();
+      }, b ? [button('Hủy', loadBudgets)] : []);
+    }
+    function editBudget(b) { mount('budget-form', budgetForm(b)); }
+    async function stopBudget(b) {
+      if (!confirm(`Dừng ngân sách "${b.name}"?`)) return;
+      await api('planning', `/budgets/${b.id}`, {method: 'DELETE'});
+      notice('Đã dừng ngân sách.', true); await loadBudgets();
+    }
+
+    // ---- Mục tiêu
+    async function loadGoals() {
+      const goals = await api('planning', '/goals');
+      mount('goal-table', table(['Tên', 'Tiền tệ', 'Mục tiêu', 'Đã tích lũy', 'Tiến độ', 'Hạn', 'Trạng thái', ''], goals.map(g =>
+        [g.name, g.currency, money(g.target_minor, g.currency), money(g.saved_minor, g.currency), `${g.progress_percent}%`, g.deadline,
+          on(g.active) ? 'Đang theo' : 'Đã kết thúc',
+          cell(button('Sửa', () => editGoal(g)), on(g.active) ? button('Kết thúc', () => endGoal(g), 'danger') : '')]), 'Chưa có mục tiêu.'));
+      mount('goal-form', goalForm());
+      const active = goals.filter(g => on(g.active));
+      mount('contribution-form', active.length ? contributionForm(active) : hint('Chưa có mục tiêu đang theo dõi.'));
+    }
+    function goalForm(g = null) {
+      $('goal-title').textContent = g ? 'Sửa mục tiêu' : 'Thêm mục tiêu';
+      return form([
+        {name: 'name', label: 'Tên mục tiêu', value: g?.name ?? '', attrs: {maxLength: 120}},
+        {name: 'currency', label: 'Tiền tệ', options: CURRENCY_OPTIONS, value: g?.currency ?? 'VND'},
+        {name: 'target_amount', label: 'Số tiền mục tiêu', attrs: AMOUNT_ATTRS, value: g ? plain(g.target_minor, g.currency) : undefined},
+        {name: 'deadline', label: 'Hạn hoàn thành', type: 'date', value: g?.deadline},
+      ], g ? 'Lưu mục tiêu' : 'Tạo mục tiêu', async v => {
+        const body = {name: v.name, currency: v.currency, target_amount: v.target_amount, deadline: v.deadline};
+        if (g) { await api('planning', `/goals/${g.id}`, {method: 'PUT', body}); notice('Đã cập nhật mục tiêu.', true); }
+        else { await api('planning', '/goals', {method: 'POST', body}); notice('Đã tạo mục tiêu.', true); }
+        await loadGoals();
+      }, g ? [button('Hủy', loadGoals)] : []);
+    }
+    function contributionForm(goals) {
+      return form([
+        {name: 'goal_id', label: 'Mục tiêu', options: goals.map(g => [String(g.id), g.name])},
+        {name: 'amount', label: 'Số tiền', attrs: AMOUNT_ATTRS},
+      ], 'Thêm tiền', async v => {
+        await api('planning', `/goals/${v.goal_id}/contributions`, {method: 'POST', body: {amount: v.amount}});
+        notice('Đã thêm tiền tích lũy.', true); await loadGoals();
+      });
+    }
+    function editGoal(g) { mount('goal-form', goalForm(g)); }
+    async function endGoal(g) {
+      if (!confirm(`Kết thúc mục tiêu "${g.name}"?`)) return;
+      await api('planning', `/goals/${g.id}`, {method: 'DELETE'});
+      notice('Đã kết thúc mục tiêu.', true); await loadGoals();
+    }
+
+    // ---- Khoản định kỳ
+    async function loadSubscriptions() {
+      const subs = await api('recurring', '/subscriptions');
+      mount('sub-table', table(['Tên', 'Số tiền', 'Chu kỳ', 'Đến hạn kế tiếp', 'Nhắc trước (ngày)', 'Trạng thái', ''], subs.map(s =>
+        [s.name, money(s.amount_minor, s.currency), PERIOD[s.period] ?? s.period, s.next_due, s.remind_days,
+          on(s.active) ? 'Đang theo dõi' : 'Đã ngừng',
+          on(s.active) ? cell(button('Sửa', () => editSub(s)), button('Đã thanh toán', () => markPaid(s)), button('Ngừng', () => stopSub(s), 'danger')) : '']), 'Chưa có khoản định kỳ.'));
+      mount('sub-form', subForm());
+    }
+    function subForm(s = null) {
+      $('sub-title').textContent = s?.id ? 'Sửa khoản định kỳ' : 'Thêm khoản định kỳ';
+      return form([
+        {name: 'name', label: 'Tên khoản', value: s?.name ?? '', attrs: {maxLength: 120}},
+        {name: 'amount', label: 'Số tiền', attrs: AMOUNT_ATTRS, value: s ? plain(s.amount_minor, s.currency) : undefined},
+        {name: 'currency', label: 'Tiền tệ', options: CURRENCY_OPTIONS, value: s?.currency ?? 'VND'},
+        {name: 'period', label: 'Chu kỳ', options: Object.entries(PERIOD), value: s?.period ?? 'monthly'},
+        {name: 'next_due', label: 'Đến hạn kế tiếp', type: 'date', value: s?.next_due ?? ymd(new Date())},
+        {name: 'remind_days', label: 'Nhắc trước (ngày)', type: 'number', attrs: {min: 0, max: 30, step: 1}, value: s?.remind_days ?? 3},
+      ], s?.id ? 'Lưu khoản' : 'Tạo khoản', async v => {
+        const body = {name: v.name, amount: v.amount, currency: v.currency, period: v.period, next_due: v.next_due, remind_days: Number(v.remind_days)};
+        if (s?.id) { await api('recurring', `/subscriptions/${s.id}`, {method: 'PUT', body}); notice('Đã cập nhật khoản định kỳ.', true); }
+        else { await api('recurring', '/subscriptions', {method: 'POST', body}); notice('Đã tạo khoản định kỳ.', true); }
+        await loadSubscriptions();
+      }, s?.id ? [button('Hủy', loadSubscriptions)] : []);
+    }
+    function editSub(s) { mount('sub-form', subForm(s)); }
+    async function markPaid(s) {
+      const result = await api('recurring', `/subscriptions/${s.id}/paid`, {method: 'POST'});
+      notice(`${result.message}. Đến hạn kế tiếp: ${result.next_due}.`, true); await loadSubscriptions();
+    }
+    async function stopSub(s) {
+      if (!confirm(`Ngừng theo dõi "${s.name}"?`)) return;
+      await api('recurring', `/subscriptions/${s.id}`, {method: 'DELETE'});
+      notice('Đã ngừng theo dõi.', true); await loadSubscriptions();
+    }
+
+    // ---- Thông báo
+    async function loadNotifications() {
+      const list = await api('recurring', '/notifications');
+      mount('notification-table', table(['Ngày', 'Nội dung', 'Trạng thái', ''], list.map(n =>
+        [n.created_on, n.message, on(n.is_read) ? 'Đã đọc' : 'Chưa đọc',
+          on(n.is_read) ? '' : button('Đánh dấu đã đọc', async () => {
+            await api('recurring', `/notifications/${n.id}/read`, {method: 'PATCH'});
+            await loadNotifications();
+          })]), 'Chưa có thông báo.'));
+    }
+
+    // ---- Báo cáo và tỷ giá
+    const reportRange = () => ({start: $('rep-start').value, end: $('rep-end').value});
+    async function loadRates() {
+      const list = await api('fx', '/rates');
+      mount('rate-table', table(['Từ', 'Sang', 'Tỷ giá', 'Hiệu lực từ', 'Nguồn'], list.map(r => [r.base, r.quote, r.rate, r.effective_on, r.source]), 'Chưa có tỷ giá.'));
+      mount('convert-form', convertForm());
+      $('convert-result').replaceChildren();
+      $('rate-section').hidden = me?.role !== 'admin';
+      mount('rate-form', me?.role === 'admin' ? rateForm() : '');
+    }
+    function convertForm() {
+      return form([
+        {name: 'base', label: 'Từ tiền tệ', options: CURRENCY_OPTIONS},
+        {name: 'quote', label: 'Sang tiền tệ', options: CURRENCY_OPTIONS, value: 'USD'},
+        {name: 'amount', label: 'Số tiền', attrs: AMOUNT_ATTRS},
+        {name: 'as_of', label: 'Tính theo ngày', type: 'date', value: ymd(new Date())},
+      ], 'Quy đổi', async v => {
+        const r = await api('fx', '/convert', {method: 'POST', body: {base: v.base, quote: v.quote, amount: v.amount, as_of: v.as_of}});
+        const result = document.createElement('div'); result.className = 'result';
+        result.textContent = `${r.amount} ${r.base} = ${r.converted_amount} ${r.quote}\nTỷ giá ${r.rate}, hiệu lực từ ${r.effective_on}, nguồn: ${r.source}`;
+        mount('convert-result', result);
+      });
+    }
+    function rateForm() {
+      return form([
+        {name: 'base', label: 'Từ tiền tệ', options: CURRENCY_OPTIONS},
+        {name: 'quote', label: 'Sang tiền tệ', options: CURRENCY_OPTIONS, value: 'USD'},
+        {name: 'rate', label: 'Tỷ giá', attrs: {inputMode: 'decimal', pattern: '[0-9]+(\\.[0-9]+)?'}},
+        {name: 'effective_on', label: 'Hiệu lực từ', type: 'date', value: ymd(new Date())},
+        {name: 'source', label: 'Nguồn (không bắt buộc)', required: false, attrs: {maxLength: 120}},
+      ], 'Lưu tỷ giá', async v => {
+        const body = {base: v.base, quote: v.quote, rate: v.rate, effective_on: v.effective_on};
+        if (v.source) body.source = v.source;
+        await api('fx', '/rates', {method: 'POST', body});
+        notice('Đã lưu tỷ giá.', true); await loadRates();
+      });
+    }
+
+    // ---- Khởi tạo
+    function init() {
+      for (const input of document.querySelectorAll('[data-month="start"]')) input.value = monthStart();
+      for (const input of document.querySelectorAll('[data-month="end"]')) input.value = monthEnd();
+      for (const input of document.querySelectorAll('[data-month="prev-start"]')) input.value = monthStart(-1);
+      for (const input of document.querySelectorAll('[data-month="prev-end"]')) input.value = monthEnd(-1);
+      for (const b of document.querySelectorAll('#tabs button')) b.onclick = () => showTab(b.dataset.tab);
+
+      $('ov-refresh').onclick = () => run(loadOverview);
+      $('tx-refresh').onclick = () => run(loadTransactions);
+      $('budget-evaluate').onclick = () => run(async () => {
+        await api('planning', '/budgets/evaluate', {method: 'POST'});
+        notice('Đã kiểm tra ngân sách; cảnh báo mới (nếu có) đã được gửi.', true); await loadBudgets();
+      });
+      $('sub-check').onclick = () => run(async () => {
+        const result = await api('recurring', '/reminders/check', {method: 'POST'});
+        notice(`Đã tạo ${result.created} nhắc hạn mới.`, true);
+      });
+      $('sub-suggest').onclick = () => run(async () => {
+        const list = await api('recurring', '/suggestions');
+        mount('sub-suggestions', table(['Gợi ý', 'Số tiền', 'Số lần', ''], list.map(s =>
+          [s.name, money(s.amount_minor, s.currency), s.occurrences, button('Dùng làm khoản mới', () => mount('sub-form', subForm(s)))]),
+          'Chưa có gợi ý. Cần ít nhất 3 lần chi cùng tên, cùng số tiền, cách nhau khoảng một tháng.'));
+      });
+      $('rep-view').onclick = () => run(async () => {
+        const data = await api('reporting', '/reports', {query: reportRange()});
+        mount('report-output', totalsTable(data.by_currency), hint(`${data.record_count} bản ghi trong kỳ.`));
+      });
+      $('rep-csv').onclick = () => run(async () => {
+        const range = reportRange();
+        const response = await api('reporting', '/reports.csv', {query: range, raw: true});
+        const url = URL.createObjectURL(await response.blob());
+        const link = document.createElement('a'); link.href = url; link.download = `bao-cao-${range.start}-${range.end}.csv`; link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+      $('rep-compare').onclick = () => run(async () => {
+        const data = await api('reporting', '/compare', {query: {...reportRange(), previous_start: $('rep-prev-start').value, previous_end: $('rep-prev-end').value}});
+        const now = data.current.by_currency, before = data.previous.by_currency;
+        const units = [...new Set([...Object.keys(now), ...Object.keys(before)])];
+        mount('report-output', table(['Tiền tệ', 'Thu kỳ này', 'Thu kỳ trước', 'Chi kỳ này', 'Chi kỳ trước', 'Ròng kỳ này', 'Ròng kỳ trước', 'Chênh lệch ròng'],
+          units.map(unit => [unit, now[unit]?.income ?? '0', before[unit]?.income ?? '0', now[unit]?.expense ?? '0', before[unit]?.expense ?? '0',
+            now[unit]?.net ?? '0', before[unit]?.net ?? '0', money(data.difference_minor[unit]?.net_minor ?? 0, unit)]), 'Không có dữ liệu để so sánh.'));
+      });
+      $('logout').onclick = () => run(async () => {
+        try { await api('identity', '/auth/logout', {method: 'POST'}); } finally { signedOut(); }
+      });
+
+      mount('login-form', loginForm());
+      mount('register-form', registerForm());
+      if (token) enter().catch(error => notice(error.message));
+    }
+    init();
+  </script>
+</body>
+</html>

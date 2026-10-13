@@ -14,6 +14,7 @@ from typing import Annotated, Literal
 import httpx
 import pymysql
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, ConfigDict, Field
@@ -217,6 +218,10 @@ def service(name: str, schema: str, tables: dict[str, str], actions: list[dict])
     app = FastAPI(title=f"{name.title()} Service", version="0.1.0", lifespan=lifespan)
     app.state.name = name
     app.state.schema = schema
+    # Trang người dùng (/app) chạy ở cổng khác với API nên cần CORS cho localhost.
+    app.add_middleware(CORSMiddleware, allow_origin_regex=r"^http://(127\.0\.0\.1|localhost)(:\d+)?$",
+                       allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+                       allow_headers=["Authorization", "Content-Type", "Idempotency-Key"])
 
     @app.exception_handler(pymysql.IntegrityError)
     async def integrity_error(request, exc):
@@ -231,6 +236,10 @@ def service(name: str, schema: str, tables: dict[str, str], actions: list[dict])
     @app.get("/admin", response_class=HTMLResponse)
     def page():
         return (ROOT / "giao_dien" / "admin.html").read_text(encoding="utf-8")
+
+    @app.get("/app", response_class=HTMLResponse)
+    def user_page():
+        return (ROOT / "giao_dien" / "user.html").read_text(encoding="utf-8")
 
     @app.get("/admin/actions")
     def admin_actions(current: Admin):
