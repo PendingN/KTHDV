@@ -76,7 +76,7 @@ export async function owned(db, table, id, user) {
   requireThat(rows.length, 'Không tìm thấy dữ liệu thuộc người dùng', 404); return rows[0];
 }
 export async function start(name, handler) {
-  const metadata = JSON.parse(fs.readFileSync(path.join(root, 'thanh_vien_2_javascript', name, 'service.json'), 'utf8'));
+  const metadata = JSON.parse(fs.readFileSync(path.join(root, 'javascript', name, 'service.json'), 'utf8'));
   const file = path.join(root, 'config.local.json');
   const local = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '')) : {};
   const config = {host: process.env.DB_HOST ?? local.host ?? '127.0.0.1', port: Number(process.env.DB_PORT ?? local.port ?? 3306),
@@ -92,12 +92,19 @@ export async function start(name, handler) {
   if (process.argv.includes('--setup')) { await pool.end(); return; }
   const port = Number(process.env.PORT_BASE || 8001) + names.indexOf(name);
   const server = http.createServer(async (request, response) => {
+    // Trang người dùng (/app) chạy ở cổng khác với API nên cần CORS cho localhost.
+    const origin = request.headers.origin || '';
+    const cors = /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(origin)
+      ? {'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE', 'Access-Control-Allow-Headers': 'Authorization, Content-Type, Idempotency-Key', Vary: 'Origin'}
+      : {};
     function send(data, status = 200, type = 'application/json; charset=utf-8') {
-      response.writeHead(status, {'Content-Type': type}); response.end(type.startsWith('application/json') ? JSON.stringify(data) : data);
+      response.writeHead(status, {'Content-Type': type, ...cors}); response.end(type.startsWith('application/json') ? JSON.stringify(data) : data);
     }
     try {
       const url = new URL(request.url, 'http://localhost'); const route = url.pathname; const method = request.method;
+      if (method === 'OPTIONS') { response.writeHead(204, cors); return response.end(); }
       if (method === 'GET' && ['/', '/admin'].includes(route)) return send(fs.readFileSync(path.join(root, 'giao_dien', 'admin.html'), 'utf8'), 200, 'text/html; charset=utf-8');
+      if (method === 'GET' && route === '/app') return send(fs.readFileSync(path.join(root, 'giao_dien', 'user.html'), 'utf8'), 200, 'text/html; charset=utf-8');
       if (method === 'GET' && route === '/health') return send({service: name, status: 'ok'});
       if (method === 'GET' && route === '/openapi.json') return send({openapi: '3.0.3', info: {title: name + ' Service', version: '0.1'}, paths: {}});
       if (method === 'GET' && route === '/docs') return send({service: name, actions: metadata.actions});

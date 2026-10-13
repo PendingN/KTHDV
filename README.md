@@ -26,7 +26,7 @@ Sửa `config.local.json` nếu thông tin MySQL khác mặc định.
 .\.venv\Scripts\python.exe run.py
 ```
 
-Mở `http://127.0.0.1:8001/admin`. Dùng `Ctrl+C` để dừng.
+Mở `http://127.0.0.1:8001/admin` (quản trị) hoặc `http://127.0.0.1:8001/app` (người dùng). Dùng `Ctrl+C` để dừng.
 
 Chạy riêng một service:
 
