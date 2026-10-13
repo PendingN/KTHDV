@@ -32,15 +32,15 @@ def command(name, setup=False):
     if name in MEMBERS["1"]:
         if setup:
             raise ValueError("Setup Python bằng initialize")
-        return [sys.executable, "-m", "uvicorn", f"thanh_vien_1_python.{name}.main:app",
+        return [sys.executable, "-m", "uvicorn", f"python.{name}.main:app",
                 "--host", "127.0.0.1", "--port", str(port), "--log-level", "warning"]
     if name in MEMBERS["2"]:
         node = shutil.which("node")
         if not node:
             raise SystemExit("Cần cài Node.js để chạy thành viên 2.")
-        result = [node, str(ROOT / "thanh_vien_2_javascript" / name / "main.js")]
+        result = [node, str(ROOT / "javascript" / name / "main.js")]
     else:
-        router = str(ROOT / "thanh_vien_3_php" / name / "index.php")
+        router = str(ROOT / "php" / name / "index.php")
         result = [php_executable(), router] if setup else [php_executable(), "-d", "date.timezone=Asia/Ho_Chi_Minh",
                     "-S", f"127.0.0.1:{port}", router]
     return result + (["--setup"] if setup else [])
@@ -63,7 +63,7 @@ def main():
     if args.setup or args.create_admin:
         for name in NAMES if args.create_admin else names:
             if name in MEMBERS["1"]:
-                app = importlib.import_module(f"thanh_vien_1_python.{name}.main").app
+                app = importlib.import_module(f"python.{name}.main").app
                 initialize(name, app.state.schema)
             else:
                 subprocess.run(command(name, setup=True), cwd=ROOT, check=True)

@@ -40,7 +40,7 @@ serve('reporting', function(PDO $db, string $route, string $method, array $p, ar
         return ['current' => $result, 'previous' => $previous, 'difference_minor' => $difference ?: (object)[]];
     }
     $stream = fopen('php://temp', 'w+'); fwrite($stream, "\xEF\xBB\xBF");
-    fputcsv($stream, ['currency', 'income', 'expense', 'net']);
-    foreach ($result['by_currency'] as $unit => $total) fputcsv($stream, [$unit, $total['income'], $total['expense'], $total['net']]);
+    fputcsv($stream, ['currency', 'income', 'expense', 'net'], ',', '"', '\\');
+    foreach ($result['by_currency'] as $unit => $total) fputcsv($stream, [$unit, $total['income'], $total['expense'], $total['net']], ',', '"', '\\');
     rewind($stream); $csv = stream_get_contents($stream); fclose($stream); return ['_csv' => $csv];
 });

@@ -40,7 +40,7 @@ function peer(string $name, string $method, string $path, ?string $token = null,
     if ($body !== null) $headers[] = 'Content-Type: application/json';
     curl_setopt_array($curl, [CURLOPT_CUSTOMREQUEST => $method, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_HTTPHEADER => $headers, CURLOPT_PROXY => '']);
     if ($body !== null) curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($body, JSON_THROW_ON_ERROR));
-    $raw = curl_exec($curl); $status = curl_getinfo($curl, CURLINFO_HTTP_CODE); curl_close($curl);
+    $raw = curl_exec($curl); $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
     check($raw !== false && $status > 0, "Service $name không kết nối được", 503);
     $result = json_decode($raw, true); check(is_array($result), "Service $name trả dữ liệu không hợp lệ", 503);
     check($status < 400, is_string($result['detail'] ?? null) ? $result['detail'] : "Service $name báo lỗi", $status); return $result;
@@ -50,8 +50,15 @@ function ledger_records(int $user, string $start, string $end): array {
     do { $page = peer('ledger', 'GET', "/internal/transactions/$user?" . http_build_query(['start' => $start, 'end' => $end, 'offset' => count($result)])); $result = array_merge($result, $page); } while (count($page) === 500);
     return $result;
 }
+function cors_headers(): void {
+    // Trang người dùng (/app) chạy ở cổng khác với API nên cần CORS cho localhost.
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    if (!preg_match('#^http://(127\.0\.0\.1|localhost)(:\d+)?$#D', $origin)) return;
+    header('Access-Control-Allow-Origin: ' . $origin); header('Vary: Origin');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE'); header('Access-Control-Allow-Headers: Authorization, Content-Type, Idempotency-Key');
+}
 function send($value, int $status = 200): void {
-    http_response_code($status); header('Content-Type: application/json; charset=utf-8'); echo json_encode($value, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    cors_headers(); http_response_code($status); header('Content-Type: application/json; charset=utf-8'); echo json_encode($value, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 }
 function serve(string $name, callable $handler): void {
     $root = dirname(__DIR__);
@@ -68,7 +75,9 @@ function serve(string $name, callable $handler): void {
             foreach (explode(';', $metadata['schema']) as $statement) if (trim($statement)) $db->exec($statement . ' ENGINE=InnoDB'); return;
         }
         $route = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH); $method = $_SERVER['REQUEST_METHOD'];
+        if ($method === 'OPTIONS') { cors_headers(); http_response_code(204); return; }
         if ($method === 'GET' && in_array($route, ['/', '/admin'], true)) { header('Content-Type: text/html; charset=utf-8'); readfile($root . '/giao_dien/admin.html'); return; }
+        if ($method === 'GET' && $route === '/app') { header('Content-Type: text/html; charset=utf-8'); readfile($root . '/giao_dien/user.html'); return; }
         if ($method === 'GET' && $route === '/health') { send(['service' => $name, 'status' => 'ok']); return; }
         if ($method === 'GET' && $route === '/docs') { send(['service' => $name, 'actions' => $metadata['actions']]); return; }
         if ($method === 'GET' && $route === '/openapi.json') { send(['openapi' => '3.0.3', 'info' => ['title' => "$name Service", 'version' => '0.1'], 'paths' => (object)[]]); return; }
@@ -89,7 +98,7 @@ function serve(string $name, callable $handler): void {
             if ($method === 'GET' && $route === '/admin/data') { $data = []; foreach ($metadata['tables'] as $label => $query) $data[$label] = sql($db, $query)->fetchAll(); send($data); return; }
         }
         $result = $handler($db, $route, $method, $body, $user); check($result !== null, 'Không tìm thấy API', 404);
-        if (array_key_exists('_csv', $result)) { header('Content-Type: text/csv; charset=utf-8'); header('Content-Disposition: attachment; filename="report.csv"'); echo $result['_csv']; }
+        if (array_key_exists('_csv', $result)) { cors_headers(); header('Content-Type: text/csv; charset=utf-8'); header('Content-Disposition: attachment; filename="report.csv"'); echo $result['_csv']; }
         else send($result['data'] ?? $result, $result['status'] ?? 200);
     } catch (ApiError $error) { send(['detail' => $error->getMessage()], $error->getCode()); }
     catch (Throwable $error) {
