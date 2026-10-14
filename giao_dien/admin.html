@@ -1,146 +1,265 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Quản lý tài chính</title>
-  <style>
-    body { font: 16px Arial, sans-serif; margin: 24px auto; padding: 0 16px; max-width: 1100px; color: #222; background: #fafafa; }
-    h1 { font-size: 25px; } h2 { font-size: 19px; }
-    nav a { display: inline-block; margin: 0 14px 10px 0; color: #164f82; }
-    section { border: 1px solid #ccc; background: white; padding: 16px; margin: 18px 0; }
-    label { display: block; margin: 12px 0 5px; }
-    input, select, textarea, button { font: inherit; padding: 8px; box-sizing: border-box; }
-    input, select, textarea { width: 100%; max-width: 520px; border: 1px solid #aaa; }
-    button { cursor: pointer; margin: 12px 8px 0 0; }
-    table { border-collapse: collapse; min-width: 400px; width: 100%; font-size: 14px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #eee; } .scroll { overflow-x: auto; }
-    pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f4f4f4; padding: 12px; }
-    [hidden] { display: none !important; } #status { min-height: 24px; color: #8b1d16; }
-    small { color: #555; } .fields { max-width: 520px; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KTHDV · Quản trị tài chính</title>
+<!-- Bố cục và màu trung tính từ template Shadcn Fintech. Bản quyền: giao_dien/LICENSE. -->
+<style>
+:root{--bg:#f7f7f8;--card:#fff;--text:#18181b;--muted:#61616c;--line:#e5e5e9;--soft:#f0f0f3;--accent:#18181b;--green:#176845;--red:#a12d32;--radius:12px}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit}
+button,.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:9px 14px;background:var(--card);color:var(--text);cursor:pointer;font-weight:550}
+button:hover,.button:hover{background:var(--soft)}
+button:disabled{cursor:wait;opacity:.6}
+.primary{background:var(--accent);color:white;border-color:var(--accent)}
+.primary:hover{background:#36363e}
+.muted,small{color:var(--muted)}
+small{font-size:12px}
+h1,h2,h3,p{margin:0}
+h1{font-size:27px;letter-spacing:-.8px;line-height:1.3}
+h2{font-size:17px;letter-spacing:-.3px}
+h3{font-size:15px}
+p+p{margin-top:8px}
+svg{width:19px;height:19px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #7777bb;outline-offset:3px}
+[hidden]{display:none!important}
+.skip{position:fixed;top:-60px;left:12px;z-index:10;background:white;padding:10px}
+.skip:focus{top:10px}
+
+.sidebar{width:236px;position:fixed;inset:0 auto 0 0;padding:24px 16px 16px;display:flex;flex-direction:column;border-right:1px solid var(--line);background:#fafafa;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:11px;margin:0 8px 34px;font-weight:700;font-size:17px}
+.brand-mark{display:grid;place-items:center;width:36px;height:36px;background:var(--accent);color:white;border-radius:10px}
+.brand small{display:block;font-weight:400;font-size:11px;letter-spacing:.3px}
+.nav-label{font-size:10px;font-weight:650;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin:24px 12px 9px}
+.side-nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:8px;margin:3px 0;color:#55555f}
+.side-nav a:hover{background:var(--soft);color:var(--text)}
+.side-nav a[aria-current=page]{background:#eaeaec;color:var(--text);font-weight:600}
+.side-nav .port{margin-left:auto;color:var(--muted);font:11px ui-monospace,monospace}
+.sidebar-bottom{margin-top:auto;padding:32px 12px 0;font-size:12px}
+.sidebar-bottom strong{display:block;font-size:13px}
+.sidebar-bottom p{margin-top:8px}
+.shell{margin-left:236px;min-width:0}
+.topbar{height:70px;border-bottom:1px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:space-between;padding:0 32px;gap:12px}
+.breadcrumb{color:var(--muted);font-size:12px;display:flex;gap:12px;align-items:center}
+.breadcrumb strong{color:var(--text);font-weight:550}
+.top-actions{display:flex;align-items:center;gap:12px}
+.badge{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:550;white-space:nowrap}
+.badge.live{background:#edf7f0;border-color:#d6e9dc;color:var(--green)}
+.badge.error{color:var(--red);background:#fff0f0}
+.dot{height:6px;width:6px;border-radius:50%;background:currentColor}
+.content{max-width:1560px;padding:30px 32px 40px;margin:auto}
+.page-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:24px}
+.eyebrow{font-size:10px;font-weight:650;letter-spacing:1.7px;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.page-heading .muted{margin-top:8px;max-width:780px}
+.heading-actions{display:flex;gap:8px;flex-shrink:0}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:26px}
+.stat{padding:18px 20px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.stat-label{color:var(--muted);font-size:12px;display:flex;align-items:center;justify-content:space-between}
+.stat strong{display:block;font-size:26px;font-weight:600;letter-spacing:-1px;margin:6px 0}
+.stat small{display:block}
+.section-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px}
+.section-heading p{font-size:12px;color:var(--muted);margin-top:3px}
+.services{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;min-width:0}
+.service-card{display:flex;flex-direction:column}
+.service-card.current{border-color:#85858e;box-shadow:0 0 0 1px #85858e}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:8px}
+.service-icon{width:39px;height:39px;border:1px solid var(--line);background:var(--bg);border-radius:10px;display:grid;place-items:center}
+.service-title{display:flex;align-items:center;gap:8px}
+.service-card h3{font-size:17px;letter-spacing:-.3px}
+.service-card .subtitle{font-size:12px;color:var(--muted);margin:2px 0 12px}
+.service-card .description{min-height:45px;font-size:13px;color:#53535e}
+.capabilities{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 20px}
+.capabilities span{padding:3px 8px;background:var(--soft);border-radius:5px;font-size:11px}
+.service-footer{border-top:1px solid var(--line);padding-top:14px;margin-top:auto;display:flex;align-items:center;justify-content:space-between;font-size:12px;gap:6px}
+.service-footer a{font-weight:600}
+.service-footer a:hover{text-decoration:underline}
+.notice{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:14px 18px;margin:20px 0;color:var(--muted);font-size:12px}
+.notice strong{color:var(--text)}
+.split{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:20px}
+.login-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;max-width:940px;margin:20px auto}
+.login-intro{padding:28px 14px}
+.login-intro h2{font-size:24px;margin:14px 0}
+.login-intro p{color:var(--muted)}
+.login-intro ol{padding-left:20px;color:var(--muted)}
+.login-intro li{padding:7px 0}
+.login-card h2{margin-bottom:5px}
+.login-card form{margin-top:20px}
+.login-card button{width:100%;margin-top:20px}
+.account{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.session{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}
+.session .badge{background:var(--soft)}
+label{display:block;font-size:12px;font-weight:550;margin:16px 0 6px}
+input,select{width:100%;min-width:0;border:1px solid #d7d7de;border-radius:7px;background:var(--card);color:var(--text);padding:9px 11px}
+input::placeholder{color:#93939b}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}
+.field{min-width:0}
+.field small{display:block;margin-top:5px}
+.form-actions{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap}
+.method{font:11px ui-monospace,monospace;background:var(--soft);padding:3px 7px;border-radius:5px}
+.endpoint{display:flex;align-items:center;gap:9px;overflow-wrap:anywhere;font:12px ui-monospace,monospace;background:var(--bg);padding:12px;border:1px solid var(--line);border-radius:8px;margin:15px 0}
+.endpoint code{min-width:0}
+.help{font-size:12px;color:var(--muted);margin-top:12px}
+details{margin-top:16px}
+summary{font-size:12px;color:var(--muted);cursor:pointer}
+pre{font:12px/1.7 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--bg);border-radius:8px;padding:14px;max-height:480px;overflow:auto}
+.result-empty{display:grid;place-items:center;text-align:center;min-height:210px;color:var(--muted);font-size:13px}
+.result-empty svg{width:30px;height:30px;margin-bottom:12px}
+.result-empty p{max-width:280px}
+.result-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:15px 0}
+.result-summary .stat strong{font-size:19px}
+.status{border-radius:8px;padding:12px 16px;margin-bottom:18px;background:#fff3f3;border:1px solid #efd4d4;color:var(--red);overflow-wrap:anywhere}
+.status.success{background:#edf7f0;border-color:#d6e9dc;color:var(--green)}
+.status:empty{display:none}
+.table-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.table-tools input{max-width:300px}
+.table-tools select{max-width:260px}
+.table-tools label{margin:0}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:9px;margin-top:14px}
+table{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap}
+th,td{border-bottom:1px solid var(--line);text-align:left;padding:12px 14px;max-width:320px;overflow:hidden;text-overflow:ellipsis}
+th{background:var(--bg);font-weight:550;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#fafafa}
+caption{text-align:left;padding:12px;font-weight:600}
+.table-empty{padding:40px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:8px;margin-top:18px}
+.data-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.data-heading small{display:block}
+.connection-list{display:grid;gap:12px;margin-top:18px}
+.connection{display:grid;grid-template-columns:180px minmax(0,1fr);gap:20px;padding:16px;border-radius:9px;background:var(--bg);border:1px solid var(--line)}
+.connection strong{font-size:13px}
+.connection p{font-size:12px;color:var(--muted)}
+.flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:20px 0}
+.flow span{padding:8px 12px;border:1px solid var(--line);border-radius:7px;background:var(--card);font-size:12px}
+.flow b{color:var(--muted)}
+.footer{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--muted);margin-top:28px;padding-top:16px;border-top:1px solid var(--line)}
+.menu-toggle{display:none}
+
+@media(min-width:1500px){.content{padding-top:38px}
+.service-card{padding:26px}
+}
+
+@media(max-width:1150px){.services{grid-template-columns:repeat(2,minmax(0,1fr))}
+.stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+.split{grid-template-columns:1fr}
+.sidebar{width:210px}
+.shell{margin-left:210px}
+.content{padding:24px}
+.topbar{padding:0 24px}
+.page-heading{flex-wrap:wrap}
+}
+
+@media(max-width:760px){.sidebar{display:none;width:240px;z-index:5;box-shadow:8px 0 30px #0002}
+.sidebar.open{display:flex}
+.shell{margin-left:0}
+.menu-toggle{display:inline-flex;padding:7px}
+.topbar{padding:0 16px;height:60px}
+.content{padding:22px 16px}
+.breadcrumb{gap:8px}
+.breadcrumb>span{display:none}
+.account{max-width:120px}
+.top-actions{gap:7px}
+.services{grid-template-columns:1fr}
+.stats{gap:10px}
+.stat{padding:14px}
+.stat strong{font-size:22px}
+.login-layout{grid-template-columns:1fr;gap:10px}
+.login-intro{padding:0 6px}
+.fields{grid-template-columns:1fr}
+.connection{grid-template-columns:1fr;gap:5px}
+.heading-actions{width:100%;flex-wrap:wrap}
+h1{font-size:24px}
+.card{padding:18px}
+.footer{flex-wrap:wrap}
+.top-actions .badge{display:none}
+}
+
+</style>
 </head>
 <body>
-  <h1 id="title">Quản lý tài chính cá nhân</h1>
-  <p>Bản thực hành 6 service · Python, JavaScript, PHP và MySQL</p>
-  <nav id="nav"></nav>
-  <p id="status" role="status" aria-live="polite"></p>
-  <section id="login-box">
-    <h2>Đăng nhập admin</h2>
-    <form id="login-form">
-      <label for="email">Email</label><input id="email" type="email" autocomplete="username" required>
-      <label for="password">Mật khẩu</label><input id="password" type="password" autocomplete="current-password" required>
-      <button>Đăng nhập</button>
-    </form>
-    <p><small>Tạo tài khoản admin bằng lệnh trong README. Tài khoản người dùng được thử API ở /docs.</small></p>
-  </section>
-  <main id="main" hidden>
-    <p><span id="account"></span> <button id="logout">Đăng xuất</button></p>
-    <section>
-      <h2>Chức năng</h2>
-      <label for="action">Chọn thao tác</label><select id="action"></select>
-      <form id="action-form">
-        <label for="path">Đường dẫn API</label><input id="path" required>
-        <p><small>Thay {id} bằng ID trong bảng. Các giá trị ví dụ có thể sửa trước khi lưu.</small></p>
-        <div class="fields" id="fields"></div>
-        <button id="submit">Thực hiện</button><button type="button" id="reload">Tải lại bảng</button>
-      </form>
-      <h2>Kết quả</h2><pre id="result">Chưa có thao tác.</pre>
-    </section>
-    <section><h2>Dữ liệu</h2><p><small>Bảng hiển thị tối đa 200 dòng gần nhất. Số tiền amount_minor: VND/JPY là đơn vị nguyên; USD/EUR là cent.</small></p><div id="tables"></div></section>
-  </main>
-  <script>
-    const $ = id => document.getElementById(id);
-    let token = sessionStorage.getItem('token') || '';
-    let actions = [];
-    let busy = false;
-    function status(message = '') { $('status').textContent = message; }
-    async function request(path, method = 'GET', body = undefined) {
-      const headers = { 'Authorization': 'Bearer ' + token };
-      if (body !== undefined) headers['Content-Type'] = 'application/json';
-      const response = await fetch(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
-      if (!response.ok) {
-        let error = await response.json().catch(() => ({ detail: 'Service báo lỗi ' + response.status }));
-        if (response.status === 401) signedOut();
-        throw new Error(typeof error.detail === 'string' ? error.detail : JSON.stringify(error.detail));
-      }
-      if (response.headers.get('content-type')?.includes('text/csv')) {
-        const url = URL.createObjectURL(await response.blob());
-        const link = document.createElement('a'); link.href = url; link.download = 'report.csv'; link.click();
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-        return { message: 'Đã tải report.csv' };
-      }
-      return response.json();
-    }
-    function signedOut() {
-      token = ''; sessionStorage.removeItem('token');
-      $('main').hidden = true; $('login-box').hidden = false; $('tables').replaceChildren(); $('result').textContent = 'Chưa có thao tác.';
-    }
-    async function reload() {
-      const data = await request('/admin/data'); $('tables').replaceChildren();
-      for (const [name, rows] of Object.entries(data)) {
-        const heading = document.createElement('h2'); heading.textContent = name; $('tables').append(heading);
-        if (!rows.length) { const empty = document.createElement('p'); empty.textContent = 'Chưa có dữ liệu.'; $('tables').append(empty); continue; }
-        const wrapper = document.createElement('div'); wrapper.className = 'scroll';
-        const table = document.createElement('table'); const head = table.createTHead().insertRow();
-        const keys = Object.keys(rows[0]);
-        for (const key of keys) { const cell = document.createElement('th'); cell.scope = 'col'; cell.textContent = key; head.append(cell); }
-        const body = table.createTBody();
-        for (const row of rows) { const tr = body.insertRow(); for (const key of keys) tr.insertCell().textContent = row[key] ?? ''; }
-        wrapper.append(table); $('tables').append(wrapper);
-      }
-    }
-    function selectAction() {
-      const action = actions[$('action').value]; if (!action) return;
-      $('path').value = action.path; $('fields').replaceChildren();
-      for (const [key, value] of Object.entries(action.body || {})) {
-        const label = document.createElement('label'); label.htmlFor = 'field-' + key; label.textContent = key;
-        const input = document.createElement('input'); input.id = 'field-' + key; input.name = key;
-        input.dataset.kind = typeof value; input.value = String(value);
-        if (key === 'password') input.type = 'password';
-        else if (key === 'email') input.type = 'email';
-        else if (typeof value === 'number') { input.type = 'number'; input.step = 'any'; }
-        else if (['occurred_on', 'start_on', 'end_on', 'deadline', 'next_due', 'effective_on', 'as_of'].includes(key)) input.type = 'date';
-        if (typeof value === 'boolean') { input.placeholder = 'true hoặc false'; input.pattern = 'true|false'; }
-        input.required = key !== 'note'; $('fields').append(label, input);
-      }
-      $('submit').textContent = action.method === 'GET' ? 'Xem kết quả' : 'Lưu / thực hiện';
-    }
-    async function openAdmin() {
-      const me = await request('/auth/me');
-      if (me.role !== 'admin') { signedOut(); throw new Error('Trang này cần tài khoản admin. Người dùng thử API ở /docs.'); }
-      const config = await request('/admin/actions'); actions = config.actions;
-      $('title').textContent = config.service + ' — quản trị'; $('account').textContent = me.email;
-      $('nav').replaceChildren();
-      for (const item of config.services) { const a = document.createElement('a'); a.href = item.url; a.textContent = item.name; $('nav').append(a); }
-      const docs = document.createElement('a'); docs.href = '/docs'; docs.textContent = 'Tài liệu API'; $('nav').append(docs);
-      $('action').replaceChildren(); actions.forEach((item, i) => { const option = document.createElement('option'); option.value = i; option.textContent = item.label; $('action').append(option); });
-      selectAction(); await reload(); $('main').hidden = false; $('login-box').hidden = true; status();
-    }
-    $('action').onchange = selectAction;
-    $('login-form').onsubmit = async event => {
-      event.preventDefault(); if (busy) return; busy = true;
-      try { const result = await request('/auth/login', 'POST', { email: $('email').value, password: $('password').value });
-        token = result.access_token; sessionStorage.setItem('token', token); $('password').value = ''; await openAdmin(); }
-      catch (error) { signedOut(); status(error.message); } finally { busy = false; }
-    };
-    $('action-form').onsubmit = async event => {
-      event.preventDefault(); if (busy) return;
-      const action = actions[$('action').value]; const path = $('path').value.trim();
-      if (!path.startsWith('/') || path.startsWith('//') || path.includes('://') || path.includes('{')) { status('Nhập đường dẫn nội bộ và thay {id} bằng số ID.'); return; }
-      if (action.method === 'DELETE' && !confirm('Dừng theo dõi bản ghi này?')) return;
-      busy = true; $('submit').disabled = true;
-      try { let body;
-        if (action.body !== null) { body = {}; for (const input of $('fields').querySelectorAll('input')) {
-          body[input.name] = input.dataset.kind === 'number' ? Number(input.value) : input.dataset.kind === 'boolean' ? input.value === 'true' : input.value; }
-        }
-        const result = await request(path, action.method, body); $('result').textContent = JSON.stringify(result, null, 2); status('Thành công.'); await reload();
-      } catch (error) { status(error.message); } finally { busy = false; $('submit').disabled = false; }
-    };
-    $('reload').onclick = () => reload().catch(error => status(error.message));
-    $('logout').onclick = async () => { try { await request('/auth/logout', 'POST'); } catch (error) { status(error.message); } signedOut(); };
-    if (token) openAdmin().catch(error => { signedOut(); status(error.message); });
-  </script>
+<a class="skip" href="#content">Đến nội dung chính</a>
+<aside class="sidebar" id="sidebar" aria-label="Điều hướng quản trị">
+  <a class="brand" href="#overview"><span class="brand-mark" data-icon="bank"></span><span>KTHDV<small>PERSONAL FINANCE</small></span></a>
+  <nav class="side-nav" aria-label="Trang"><div class="nav-label">Không gian quản trị</div>
+    <a href="#overview" data-view="overview"><span data-icon="grid"></span>Tổng quan services</a>
+    <a href="#workspace" data-view="workspace"><span data-icon="sliders"></span>Thao tác quản trị</a>
+    <a href="#data" data-view="data"><span data-icon="database"></span>Dữ liệu service</a>
+    <a href="#connections" data-view="connections"><span data-icon="network"></span>Kết nối hệ thống</a>
+  </nav>
+  <div class="nav-label">6 services đã xây dựng</div><nav class="side-nav" id="nav" aria-label="Chọn service"></nav>
+  <div class="sidebar-bottom"><strong>Đồ án hướng dịch vụ</strong><small>Python · JavaScript · PHP · MySQL</small><p>Mỗi service có API và dữ liệu riêng.</p></div>
+</aside>
+<div class="shell">
+<header class="topbar"><div class="breadcrumb"><button class="menu-toggle" id="menu-toggle" aria-label="Mở điều hướng" aria-controls="sidebar" aria-expanded="false"><span data-icon="menu"></span></button><span>Quản trị tài chính</span><span>/</span><strong id="breadcrumb">Tổng quan services</strong></div><div class="top-actions"><span class="badge" id="health"><span class="dot"></span>Chưa kiểm tra</span><span class="account" id="account">Chưa đăng nhập</span><button id="logout" hidden>Đăng xuất</button></div></header>
+<main class="content" id="content" tabindex="-1">
+  <div class="page-heading"><div><p class="eyebrow" id="eyebrow">KTHDV / SERVICE CONSOLE</p><h1 id="title">Tổng quan services</h1><p class="muted" id="page-description">6 dịch vụ, mỗi dịch vụ một trách nhiệm. Chọn service để xem dữ liệu và thực hiện quản trị.</p></div><div class="heading-actions"><a class="button" id="docs" href="/docs" target="_blank" rel="noopener"><span data-icon="code"></span>Tài liệu API ↗</a><a class="button primary" href="#workspace"><span data-icon="sliders"></span>Mở quản trị</a></div></div>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+  <div class="stats"><div class="stat"><div class="stat-label">Services đã xây dựng <span data-icon="grid"></span></div><strong>06</strong><small>Số lượng trong mã nguồn</small></div><div class="stat"><div class="stat-label">Nhóm công nghệ <span data-icon="code"></span></div><strong>03</strong><small>FastAPI · Node.js · PHP</small></div><div class="stat"><div class="stat-label">Service hiện tại <span data-icon="server"></span></div><strong id="current-name">—</strong><small id="current-port">Đang xác định service</small></div><div class="stat"><div class="stat-label">Thao tác khả dụng <span data-icon="sliders"></span></div><strong id="action-count">—</strong><small id="action-count-note">Đăng nhập admin để tải từ API</small></div></div>
+  <section id="view-overview" aria-label="Tổng quan services"><div class="section-heading"><div><h2>Các dịch vụ trong hệ thống</h2><p>Trách nhiệm và tính năng đã có trong mã nguồn.</p></div><span class="badge">6 service · 6 database</span></div><div class="services" id="service-cards"></div><div class="notice"><strong>Trạng thái chạy:</strong> nhãn ở góc phải chỉ kiểm tra <code>/health</code> của service đang mở. Các service khác cần được mở để kiểm tra riêng.</div></section>
+  <section id="view-connections" hidden aria-label="Kết nối hệ thống"><div class="card"><h2>Dữ liệu đi qua các service như thế nào?</h2><p class="help">Giao tiếp REST/HTTP. Yêu cầu người dùng dùng Bearer token; lời gọi nội bộ dùng X-Service-Key.</p><div class="flow"><span>Ledger · Ghi giao dịch</span><b>→</b><span>Planning · Kiểm tra ngân sách</span><b>→</b><span>Recurring · Nhận cảnh báo</span></div><div class="connection-list" id="connections"></div></div><div class="notice">Runner kiểm tra sự kiện chờ của Ledger và lịch nhắc của Recurring mỗi 30 giây khi chạy toàn bộ hệ thống.</div></section>
+  <section id="login-box" hidden aria-label="Đăng nhập admin"><div class="login-layout"><div class="login-intro"><span class="badge"><span data-icon="shield"></span>Dành cho quản trị viên</span><h2>Một tài khoản,<br>sáu khu vực quản trị.</h2><p>Đăng nhập tài khoản admin đã tạo bằng <code>run.py --create-admin</code>.</p><ol><li>Chọn service ở thanh bên.</li><li>Đăng nhập tại service đó.</li><li>Chọn thao tác hoặc xem dữ liệu.</li></ol><div class="notice">Phiên đăng nhập được lưu riêng theo cổng trong tab hiện tại. Chuyển service sẽ cần đăng nhập tại cổng mới.</div></div><div class="card login-card"><h2>Đăng nhập admin</h2><p class="muted" id="login-service">Xác thực qua Identity Service</p><form id="login-form"><label for="email">Email</label><input id="email" type="email" placeholder="admin@example.com" autocomplete="username" required><label for="password">Mật khẩu</label><input id="password" type="password" placeholder="Nhập mật khẩu của bạn" autocomplete="current-password" required><button class="primary" id="login-submit">Đăng nhập <span aria-hidden="true">→</span></button></form><p class="help">Tài khoản thông thường không có quyền truy cập trang quản trị.</p></div></div></section>
+  <div id="main" hidden>
+    <section id="view-workspace" hidden aria-label="Thao tác quản trị"><div class="session"><span class="badge"><span data-icon="shield"></span>Quyền admin đã xác thực</span><small id="action-scope"></small></div><div class="split"><div class="card"><div class="section-heading"><h2>Thực hiện thao tác</h2><span class="badge" id="service-badge">Service</span></div><label for="action">Chức năng</label><select id="action"></select><form id="action-form"><div class="endpoint"><span class="method" id="method">GET</span><code id="endpoint"></code></div><div id="parameters" class="fields"></div><div class="fields" id="fields"></div><details><summary>Đường dẫn API (nâng cao)</summary><label for="path">Đường dẫn nội bộ</label><input id="path" required></details><p class="help">Dữ liệu điền sẵn là ví dụ từ API. Kiểm tra ID, số tiền và ngày trước khi thực hiện. Số tiền nhập theo đơn vị tiền tệ, ví dụ 10.50 USD.</p><div class="form-actions"><button class="primary" id="submit">Thực hiện</button><button type="button" id="reload"><span data-icon="refresh"></span>Tải lại dữ liệu</button></div></form></div><div class="card"><div class="section-heading"><h2>Kết quả từ API</h2><span class="badge" id="result-state">Chưa có thao tác</span></div><div id="result-view" class="result-empty"><div><span data-icon="code"></span><p>Chọn chức năng và thực hiện.<br>Phản hồi của service sẽ xuất hiện tại đây.</p></div></div><details id="result-details" hidden><summary>Xem JSON phản hồi</summary><pre id="result">Chưa có thao tác.</pre></details></div></div></section>
+    <section id="view-data" hidden aria-label="Dữ liệu service"><div class="card"><div class="section-heading"><div><h2>Dữ liệu quản trị</h2><p id="loaded-at">Chưa tải dữ liệu.</p></div><button id="reload-data"><span data-icon="refresh"></span>Tải lại</button></div><div class="table-tools"><label for="table-select">Bảng</label><select id="table-select"></select><label for="table-search">Tìm trong bảng</label><input id="table-search" type="search" placeholder="ID, tên, email…"></div><div id="tables"></div><p class="help">Mỗi bảng trả tối đa 200 dòng gần nhất. Lọc chỉ áp dụng cho các dòng đã tải. Trường *_minor giữ nguyên đơn vị lưu trữ: VND/JPY là số nguyên; USD/EUR là cent.</p></div></section>
+  </div>
+  <footer class="footer"><span>KTHDV · Quản lý tài chính cá nhân</span><span>Giao diện theo template Shadcn Fintech · Dữ liệu từ API</span></footer>
+</main>
+</div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const icons = {bank:'M3 10h18M5 10v9m5-9v9m4-9v9m5-9v9M3 21h18M2 7l10-5 10 5H2z',grid:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',wallet:'M20 8V5H4a2 2 0 0 0 0 4h17v11H4a2 2 0 0 1-2-2V7m19 6h-5v4h5',shield:'M12 3l8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3zM8 12l3 3 5-6',target:'M21 12a9 9 0 1 1-9-9m0 4a5 5 0 1 0 5 5m-5 0 9-9m-5 0h5v5',bell:'M5 9a7 7 0 0 1 14 0v7l2 2H3l2-2V9m5 12h4',exchange:'M3 7h18m-4-4 4 4-4 4M21 17H3m4-4-4 4 4 4',chart:'M3 3v18h18M7 16v-5m5 5V7m5 9v-8',code:'M8 6l-6 6 6 6m8-12 6 6-6 6M14 3l-4 18',server:'M3 3h18v7H3zM3 14h18v7H3zM7 6h.01M7 17h.01',sliders:'M4 21V10m0-4V3m8 18v-3m0-4V3m8 18V10m0-4V3M1 6h6m2 12h6m2-12h6',database:'M21 5c0 2-4 3-9 3S3 7 3 5s4-3 9-3 9 1 9 3zM3 5v14c0 2 4 3 9 3s9-1 9-3V5M3 12c0 2 4 3 9 3s9-1 9-3',network:'M9 3h6v6H9zM2 16h6v6H2zM16 16h6v6h-6zM12 9v4M5 16v-3h14v3',refresh:'M20 7a9 9 0 1 0 1 8M20 2v5h-5',menu:'M3 6h18M3 12h18M3 18h18'};
+function icon(name) { const svg = document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('aria-hidden','true'); const p=document.createElementNS(svg.namespaceURI,'path'); p.setAttribute('d',icons[name] || icons.server); svg.append(p); return svg; }
+document.querySelectorAll('[data-icon]').forEach(el=>el.replaceChildren(icon(el.dataset.icon)));
+const services = [
+ {name:'identity',title:'Identity',subtitle:'Tài khoản & phân quyền',stack:'Python / FastAPI',icon:'shield',description:'Xác thực đăng nhập, quản lý tài khoản và kiểm soát quyền truy cập.',features:['Tạo người dùng','Khóa / mở tài khoản','Phiên Bearer'],connection:'Các service xác thực người dùng qua Identity. Quản lý mật khẩu, phiên đăng nhập và quyền admin.'},
+ {name:'ledger',title:'Ledger',subtitle:'Ví tiền & giao dịch',stack:'Python / FastAPI',icon:'wallet',description:'Lưu ví, danh mục và lịch sử thu chi; giữ dấu vết điều chỉnh giao dịch.',features:['Ví & danh mục','Thu / chi & chuyển tiền','Điều chỉnh / đảo'],connection:'Ghi sự kiện chờ khi giao dịch thay đổi. Runner chuyển sự kiện sang Planning để đánh giá ngân sách.'},
+ {name:'planning',title:'Planning',subtitle:'Ngân sách & mục tiêu',stack:'JavaScript / Node.js',icon:'target',description:'Theo dõi hạn mức chi tiêu và tiến độ tích lũy cho từng mục tiêu.',features:['Ngân sách','Mục tiêu tích lũy','Cảnh báo ngưỡng'],connection:'Đọc danh mục và giao dịch từ Ledger; gửi cảnh báo vượt ngưỡng sang Recurring.'},
+ {name:'recurring',title:'Recurring',subtitle:'Khoản định kỳ & nhắc hạn',stack:'JavaScript / Node.js',icon:'bell',description:'Quản lý khoản chi lặp lại, lịch nhắc và thông báo cho người dùng.',features:['Lịch định kỳ','Nhắc hạn & thông báo','Gợi ý từ lịch sử'],connection:'Nhận cảnh báo từ Planning và đọc Ledger để gợi ý khoản định kỳ. Đánh dấu đã thanh toán chỉ cập nhật lịch, không tự ghi thu chi.'},
+ {name:'fx',title:'FX',subtitle:'Tỷ giá & quy đổi',stack:'PHP / PDO MySQL',icon:'exchange',description:'Lưu tỷ giá theo ngày và quy đổi số tiền giữa các đồng tiền hỗ trợ.',features:['Nhập tỷ giá','Quy đổi ngoại tệ','VND · USD · EUR · JPY'],connection:'Admin nhập tỷ giá thủ công. FX hiện được gọi độc lập; Ledger và Reporting chưa gọi FX để quy đổi.'},
+ {name:'reporting',title:'Reporting',subtitle:'Báo cáo & thống kê',stack:'PHP / PDO MySQL',icon:'chart',description:'Tổng hợp thu chi, số dư và so sánh các kỳ từ dữ liệu giao dịch.',features:['Dashboard thu chi','So sánh kỳ','Xuất CSV'],connection:'Đọc ví và giao dịch từ Ledger. Báo cáo tách theo từng đồng tiền; lưu lịch sử yêu cầu xem báo cáo.'}
+];
+const viewNames = {overview:'Tổng quan services',workspace:'Thao tác quản trị',data:'Dữ liệu service',connections:'Kết nối hệ thống'};
+const basePort = 8001;
+const adminPort = '8090';
+const nodeAdmin = globalThis.__KTHDV_NODE_ADMIN__ === true || location.port === adminPort;
+let selectedService = new URLSearchParams(location.search).get('service') || 'identity';
+if (!services.some(service => service.name === selectedService)) selectedService = 'identity';
+let token = sessionStorage.getItem('token') || '', actions = [], busy = false, current = null, serviceLinks = [], tableData = {}, authenticated = false;
+const make = (tag,text,cls) => {const e=document.createElement(tag); if(text!==undefined)e.textContent=text; if(cls)e.className=cls; return e;};
+function servicePort(name){return basePort + services.findIndex(service => service.name === name);}
+function serviceUrl(name,hash='overview'){const query='?service='+encodeURIComponent(name)+'#'+hash;return nodeAdmin?query:'http://127.0.0.1:'+adminPort+'/admin'+query;}
+function status(message='',success=false){$('status').textContent=message;$('status').classList.toggle('success',success);}
+function showView(){const view=Object.hasOwn(viewNames,location.hash.slice(1))?location.hash.slice(1):'overview'; Object.keys(viewNames).forEach(name=>$('view-'+name).hidden=name!==view || (['workspace','data'].includes(name)&&!authenticated)); $('main').hidden=!authenticated; $('login-box').hidden=authenticated || !['workspace','data'].includes(view); $('breadcrumb').textContent=viewNames[view]; $('title').textContent=viewNames[view]; $('page-description').textContent=view==='overview'?'6 dịch vụ, mỗi dịch vụ một trách nhiệm. Chọn service để xem dữ liệu và thực hiện quản trị.':view==='connections'?'Trách nhiệm, hướng gọi API và giới hạn hiện tại của từng service.':current?current.title+' · '+current.subtitle+' — '+current.description:'Đăng nhập để tải chức năng và dữ liệu quản trị từ service.'; document.querySelectorAll('[data-view]').forEach(a=>{if(a.dataset.view===view)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');}); $('sidebar').classList.remove('open'); $('menu-toggle').setAttribute('aria-expanded','false');}
+function renderServices(){ $('nav').replaceChildren();$('service-cards').replaceChildren();$('connections').replaceChildren(); for(const [i,s] of services.entries()){const url=serviceUrl(s.name);const active=current?.name===s.name;const a=make('a');a.href=url;a.append(icon(s.icon),make('span',s.title),make('span',servicePort(s.name),'port')); if(active)a.setAttribute('aria-current','page');$('nav').append(a);
+ const card=make('article',undefined,'card service-card'+(active?' current':''));const top=make('div',undefined,'card-top');const mark=make('span',undefined,'service-icon');mark.append(icon(s.icon));top.append(mark,make('span',active?'Đang mở':'Đã xây dựng','badge')); const title=make('h3',s.title);card.append(top,title,make('p',s.subtitle,'subtitle'),make('p',s.description,'description'));const features=make('div',undefined,'capabilities');s.features.forEach(f=>features.append(make('span',f)));card.append(features);const footer=make('div',undefined,'service-footer');const open=make('a','Mở quản trị ↗');open.href=active?'#workspace':serviceUrl(s.name,'workspace');open.setAttribute('aria-label','Mở quản trị '+s.title);footer.append(make('small',s.stack),open);card.append(footer);$('service-cards').append(card);
+ const connection=make('div',undefined,'connection');connection.append(make('strong',s.title),make('p',s.connection));$('connections').append(connection);
+ } }
+async function request(path,method='GET',body){if(!path.startsWith('/')||path.startsWith('//'))throw new Error('Đường dẫn API không hợp lệ.');const prefix=nodeAdmin?'/api/'+encodeURIComponent(selectedService):'';const target=new URL(prefix+path,location.origin);const headers={};if(token)headers.Authorization='Bearer '+token;if(body!==undefined)headers['Content-Type']='application/json';const response=await fetch(target,{method,headers,body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(15000)});if(!response.ok){const error=await response.json().catch(()=>({detail:'Service báo lỗi '+response.status}));if(response.status===401)signedOut();throw new Error(typeof error.detail==='string'?error.detail:JSON.stringify(error.detail || error));}if(response.headers.get('content-type')?.includes('text/csv')){const url=URL.createObjectURL(await response.blob());const a=make('a');a.href=url;a.download='report.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return {message:'Đã tải report.csv'};}if(response.status===204)return {message:'Đã thực hiện.'};return response.json();}
+function signedOut(){token='';sessionStorage.removeItem('token');authenticated=false;actions=[];tableData={};$('account').textContent='Chưa đăng nhập';$('logout').hidden=true;$('action-count').textContent='—';$('action-count-note').textContent='Đăng nhập admin để tải từ API';$('tables').replaceChildren();$('fields').replaceChildren();$('parameters').replaceChildren();$('action').replaceChildren();$('table-select').replaceChildren();$('table-search').value='';$('result').textContent='Chưa có thao tác.';$('result-details').hidden=true;$('result-state').textContent='Chưa có thao tác';$('result-view').replaceChildren(make('p','Đăng nhập và thực hiện để xem phản hồi.'));showView();}
+function renderTable(rows,container,caption){if(!rows.length){container.append(make('div','Chưa có dữ liệu phù hợp.','table-empty'));return;}const wrapper=make('div',undefined,'scroll');const table=make('table');if(caption)table.append(make('caption',caption));const keys=[...new Set(rows.flatMap(row=>Object.keys(row)))];const head=table.createTHead().insertRow();for(const key of keys){const th=make('th',key);th.scope='col';head.append(th);}const body=table.createTBody();for(const row of rows){const tr=body.insertRow();for(const key of keys){const value=row[key];const td=tr.insertCell();td.textContent=value===null||value===undefined?'—':typeof value==='object'?JSON.stringify(value):String(value);td.title=td.textContent;}}wrapper.append(table);container.append(wrapper);}
+function renderData(){const name=$('table-select').value;const rows=tableData[name] || [];const term=$('table-search').value.trim().toLocaleLowerCase('vi');const filtered=rows.filter(row=>Object.values(row).some(v=>String(v??'').toLocaleLowerCase('vi').includes(term)));$('tables').replaceChildren();const heading=make('div',undefined,'data-heading');heading.append(make('h3',name || 'Dữ liệu'),make('span',filtered.length+' / '+rows.length+' dòng đã tải','badge'));$('tables').append(heading);renderTable(filtered,$('tables'),name);}
+async function reload(){const data=await request('/admin/data');tableData=data;const selected=$('table-select').value;$('table-select').replaceChildren();Object.entries(data).forEach(([name,rows])=>{const option=make('option',name+' ('+rows.length+')');option.value=name;$('table-select').append(option);});if(selected in data)$('table-select').value=selected;renderData();$('loaded-at').textContent='Cập nhật '+new Date().toLocaleTimeString('vi-VN')+' · Tối đa 200 dòng mỗi bảng';}
+const labels={email:'Email',name:'Tên',password:'Mật khẩu',active:'Trạng thái',currency:'Tiền tệ',kind:'Loại giao dịch',wallet_id:'ID ví',category_id:'ID danh mục',amount:'Số tiền',occurred_on:'Ngày giao dịch',note:'Ghi chú',from_wallet:'ID ví nguồn',to_wallet:'ID ví nhận',limit_amount:'Hạn mức ngân sách',start_on:'Từ ngày',end_on:'Đến ngày',threshold:'Ngưỡng cảnh báo (%)',target_amount:'Số tiền mục tiêu',deadline:'Hạn hoàn thành',period:'Chu kỳ',next_due:'Hạn thanh toán tiếp theo',remind_days:'Nhắc trước (ngày)',base:'Tiền nguồn',quote:'Tiền đích',rate:'Tỷ giá',effective_on:'Ngày hiệu lực',source:'Nguồn tỷ giá',as_of:'Ngày quy đổi',start:'Từ ngày',end:'Đến ngày',previous_start:'Kỳ trước: từ ngày',previous_end:'Kỳ trước: đến ngày'};
+const choices={currency:[['VND','VND'],['USD','USD'],['EUR','EUR'],['JPY','JPY']],kind:[['income','Thu nhập'],['expense','Chi tiêu']],period:[['weekly','Hàng tuần'],['monthly','Hàng tháng'],['yearly','Hàng năm']]};
+choices.base=choices.currency;choices.quote=choices.currency;
+function field(key,value,parent,kind='body'){const wrap=make('div',undefined,'field');const label=make('label',labels[key] || (key==='id'?'ID bản ghi':key));const id=kind+'-'+key;label.htmlFor=id;let input;const options=typeof value==='boolean'?[['true','Đang hoạt động / mở'],['false','Ngừng hoạt động / khóa']]:choices[key];if(options){input=make('select');options.forEach(([v,t])=>{const o=make('option',t);o.value=v;input.append(o);});}else{input=make('input');input.type=key==='password'?'password':key==='email'?'email':/^(occurred_on|start_on|end_on|deadline|next_due|effective_on|as_of|start|end|previous_start|previous_end)$/.test(key)?'date':typeof value==='number'||kind==='id'?'number':'text';if(input.type==='number'){input.step='1';input.min=kind==='id'||key.endsWith('_id')||key.includes('wallet')?'1':'0';}if(/amount|rate/.test(key))input.inputMode='decimal';}input.id=id;input.name=key;input.dataset.kind=typeof value;input.value=String(value);input.required=key!=='note';wrap.append(label,input);if(kind==='id')wrap.append(make('small','Lấy ID từ bảng dữ liệu của service.'));parent.append(wrap);return input;}
+function syncPath(){const action=actions[$('action').value];if(!action)return;let p=action.path;const url=new URL(p,location.origin);for(const input of $('parameters').querySelectorAll('input,select')){if(input.dataset.param==='id')url.pathname=url.pathname.replace(encodeURIComponent('{'+input.name+'}'),input.value || '{'+input.name+'}').replace('{'+input.name+'}',input.value || '{'+input.name+'}');else url.searchParams.set(input.name,input.value);}p=decodeURI(url.pathname)+url.search;$('path').value=p;$('endpoint').textContent=p;}
+function selectAction(){const action=actions[$('action').value];if(!action)return;$('path').value=action.path;$('endpoint').textContent=action.path;$('method').textContent=action.method;$('fields').replaceChildren();$('parameters').replaceChildren();for(const match of action.path.matchAll(/[{]([a-z_]+)[}]/g)){const input=field(match[1],'',$('parameters'),'id');input.dataset.param='id';input.oninput=syncPath;}const url=new URL(action.path,location.origin);for(const [key,value]of url.searchParams){const input=field(key,value,$('parameters'),'query');input.dataset.param='query';input.oninput=syncPath;}for(const [key,value]of Object.entries(action.body || {}))field(key,value,$('fields'));$('submit').textContent=action.method==='GET'?'Xem kết quả':action.method==='DELETE'?'Dừng theo dõi':'Thực hiện';}
+function renderResult(data){$('result-view').replaceChildren();$('result-view').classList.remove('result-empty');$('result-details').hidden=false;$('result').textContent=JSON.stringify(data,null,2);$('result-state').textContent='Thành công';if(Array.isArray(data)){if(data.every(row=>row&&typeof row==='object'&&!Array.isArray(row)))renderTable(data,$('result-view'),'Kết quả: '+data.length+' dòng');else $('result-view').append(make('pre',JSON.stringify(data,null,2)));return;}if(data.by_currency){for(const [currency,total]of Object.entries(data.by_currency)){const group=make('div',undefined,'result-summary');for(const [key,label]of [['income','Thu nhập'],['expense','Chi tiêu'],['net','Chênh lệch']]){const stat=make('div',undefined,'stat');stat.append(make('small',label),make('strong',(total[key]??'—')+' '+currency));group.append(stat);}$('result-view').append(group);}if(!Object.keys(data.by_currency).length)$('result-view').append(make('p','Chưa có giao dịch trong kỳ đã chọn.','muted'));return;}$('result-view').append(make('pre',JSON.stringify(data,null,2)));}
+async function openAdmin(){const me=await request('/auth/me');if(me.role!=='admin')throw new Error('Trang này cần tài khoản admin.');const config=await request('/admin/actions');actions=config.actions;selectedService=config.service;current=services.find(s=>s.name===config.service);serviceLinks=config.services;authenticated=true;$('account').textContent=me.email;$('logout').hidden=false;$('action-count').textContent=actions.length.toString().padStart(2,'0');$('action-count-note').textContent='Lấy từ /admin/actions';$('current-name').textContent=current?.title || config.service;$('current-port').textContent='Service '+servicePort(config.service)+' · '+(current?.stack||'');$('service-badge').textContent=current?.title || config.service;$('action-scope').textContent=['identity','fx'].includes(config.service)?'Quản lý tài khoản / tỷ giá của hệ thống':'Bảng admin xem nhiều người dùng; thao tác nghiệp vụ áp dụng cho tài khoản đang đăng nhập.';$('action').replaceChildren();actions.forEach((a,i)=>{const o=make('option',a.label+' · '+a.method);o.value=i;$('action').append(o);});renderServices();selectAction();showView();status();try{await reload();}catch(error){status('Đã đăng nhập, nhưng chưa tải được bảng: '+error.message);}}
+async function checkService(){if(location.protocol==='file:'){status('Mở Node admin bằng http://127.0.0.1:8090/admin. File HTML mở trực tiếp không gọi được API.');return;}try{const data=await request('/health');current=services.find(s=>s.name===data.service);if(!current||data.status!=='ok')throw new Error('Phản hồi /health không hợp lệ.');selectedService=current.name;$('health').className='badge live';$('health').replaceChildren(make('span',undefined,'dot'),document.createTextNode(current.title+' · /health OK'));$('current-name').textContent=current.title;$('current-port').textContent='Service '+servicePort(current.name)+' · '+current.stack;$('eyebrow').textContent='KTHDV / '+current.title.toUpperCase()+' SERVICE';$('login-service').textContent='Đăng nhập vào '+current.title+' · Xác thực qua Identity';renderServices();showView();}catch(error){$('health').className='badge error';$('health').textContent='Chưa kiểm tra được /health';status('Không xác định được service. Kiểm tra Node admin và các service: '+error.message);}}
+$('action').onchange=selectAction;$('path').oninput=()=>$('endpoint').textContent=$('path').value;$('table-select').onchange=renderData;$('table-search').oninput=renderData;
+$('login-form').onsubmit=async event=>{event.preventDefault();if(busy)return;busy=true;$('login-submit').disabled=true;status();try{const result=await request('/auth/login','POST',{email:$('email').value,password:$('password').value});token=result.access_token;sessionStorage.setItem('token',token);$('password').value='';await openAdmin();}catch(error){signedOut();status(error.message);}finally{busy=false;$('login-submit').disabled=false;}};
+$('action-form').onsubmit=async event=>{event.preventDefault();if(busy)return;const action=actions[$('action').value];if(!action)return;const p=$('path').value.trim();let target;try{target=new URL(p,location.origin);}catch{status('Đường dẫn API không hợp lệ.');return;}if(!p.startsWith('/')||p.startsWith('//')||target.origin!==location.origin||/[{}]/.test(decodeURI(p))||p.includes('\\')){status('Nhập đường dẫn nội bộ và điền ID bản ghi.');return;}if(action.method==='DELETE'&&!confirm('Xác nhận: '+action.label+'?'))return;busy=true;$('submit').disabled=true;status();try{let body;if(action.body!=null){body={};for(const input of $('fields').querySelectorAll('input,select')){body[input.name]=input.dataset.kind==='number'?Number(input.value):input.dataset.kind==='boolean'?input.value==='true':input.value;}}const data=await request(p,action.method,body);renderResult(data);status('Thao tác thành công.',true);try{await reload();}catch(error){status('Thao tác đã thành công; chưa tải lại được dữ liệu: '+error.message);}}catch(error){$('result-state').textContent='Không thành công';status(error.message);}finally{busy=false;$('submit').disabled=false;}};
+async function reloadData(){if(busy)return;busy=true;$('reload').disabled=true;$('reload-data').disabled=true;try{await reload();status('Đã tải lại dữ liệu.',true);}catch(error){status(error.message);}finally{busy=false;$('reload').disabled=false;$('reload-data').disabled=false;}}
+$('reload').onclick=reloadData;$('reload-data').onclick=reloadData;$('logout').onclick=async()=>{if(busy)return;busy=true;try{await request('/auth/logout','POST');signedOut();status('Đã đăng xuất.',true);}catch(error){status('Chưa xác nhận được đăng xuất trên server: '+error.message);}finally{busy=false;}};
+$('menu-toggle').onclick=()=>{const open=$('sidebar').classList.toggle('open');$('menu-toggle').setAttribute('aria-expanded',String(open));};document.addEventListener('keydown',event=>{if(event.key==='Escape'){$('sidebar').classList.remove('open');$('menu-toggle').setAttribute('aria-expanded','false');}});window.addEventListener('hashchange',showView);
+renderServices();showView();(async()=>{await checkService();if(token){try{await openAdmin();}catch(error){signedOut();status(error.message);}}})();
+</script>
 </body>
 </html>

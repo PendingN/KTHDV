@@ -7,3 +7,8 @@ config.local.json
 node_modules/
 Diagram/
 Usecase&UML/
+*.doc
+*.docx
+.archify/
+/tmp/frontend*
+/tmp/browser-tools/

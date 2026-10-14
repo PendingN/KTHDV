@@ -45,6 +45,37 @@ def command(name, setup=False):
                     "-S", f"127.0.0.1:{port}", router]
     return result + (["--setup"] if setup else [])
 
+
+def admin_command():
+    node = shutil.which("node")
+    if not node:
+        raise SystemExit("Cần cài Node.js để chạy trang admin.")
+    return [node, str(ROOT / "giao_dien" / "main.js")]
+
+
+def frontend_command():
+    node = shutil.which("node")
+    entry = ROOT / "template" / "node_modules" / "next" / "dist" / "bin" / "next"
+    if not node or not entry.is_file():
+        raise SystemExit("Thiếu frontend. Chạy: npx.cmd --yes pnpm@10.32.1 --dir template install --frozen-lockfile")
+    return [node, str(entry), "dev", "--hostname", "127.0.0.1", "--port", "3000"]
+
+
+def stop_processes(processes):
+    for process in processes:
+        if process.poll() is None:
+            if os.name == "nt":
+                subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"], capture_output=True)
+            else:
+                process.terminate()
+    for process in processes:
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+
+
 sys.stdout.reconfigure(encoding="utf-8")
 sys.stderr.reconfigure(encoding="utf-8")
 
@@ -85,6 +116,7 @@ def main():
                     print("Đã tạo admin. Dùng tài khoản này đăng nhập tại từng service.")
         return
 
+    frontend = frontend_command() if not args.service and not args.member else None
     key_file = ROOT / "data" / "internal.key"
     key_file.parent.mkdir(exist_ok=True)
     if not key_file.exists():
@@ -100,10 +132,16 @@ def main():
             subprocess.run(command(name, setup=True), cwd=ROOT, check=True)
     processes = []
     try:
+        if not args.service and not args.member:
+            processes.append(subprocess.Popen(admin_command(), cwd=ROOT))
+            print(f"admin: http://127.0.0.1:{os.getenv('ADMIN_PORT', '8090')}/admin", flush=True)
         for name in names:
             port = PORT_BASE + NAMES.index(name)
             processes.append(subprocess.Popen(command(name), cwd=ROOT))
             print(f"{name}: http://127.0.0.1:{port}/admin", flush=True)
+        if frontend:
+            processes.append(subprocess.Popen(frontend, cwd=ROOT / "template"))
+            print("user: http://127.0.0.1:3000", flush=True)
         print("Ctrl+C để dừng. Runner kiểm tra cảnh báo/lịch nhắc của phần đang chạy mỗi 30 giây.", flush=True)
         next_check = time.monotonic() + 5
         with httpx.Client(timeout=15, trust_env=False) as client:
@@ -124,15 +162,7 @@ def main():
     except KeyboardInterrupt:
         print("Đang dừng các service...")
     finally:
-        for process in processes:
-            if process.poll() is None:
-                process.terminate()
-        for process in processes:
-            try:
-                process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait()
+        stop_processes(processes)
 
 
 if __name__ == "__main__":
