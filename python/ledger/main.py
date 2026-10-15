@@ -231,13 +231,19 @@ def internal_transactions(user_id: int, access: Internal, start: date = date(200
 @app.post("/internal/dispatch")
 async def dispatch(access: Internal):
     with database("ledger") as db:
-        events = rows(db, "SELECT * FROM pending_events WHERE sent=0 ORDER BY id LIMIT 30")
+        events = rows(db, "SELECT id,user_id FROM pending_events WHERE sent=0 ORDER BY id LIMIT 30")
+    events_by_user = {}
     for event in events:
+        events_by_user.setdefault(event["user_id"], []).append(event["id"])
+
+    for user_id, event_ids in events_by_user.items():
         try:
-            await peer("planning", "POST", f"/internal/evaluate/{event['user_id']}")
+            await peer("planning", "POST", f"/internal/evaluate/{user_id}")
             with database("ledger") as db:
-                execute(db, "UPDATE pending_events SET sent=1,last_error='' WHERE id=%s", (event["id"],))
+                many(db, "UPDATE pending_events SET sent=1,last_error='' WHERE id=%s",
+                     [(event_id,) for event_id in event_ids])
         except Exception as error:
             with database("ledger") as db:
-                execute(db, "UPDATE pending_events SET last_error=%s WHERE id=%s", (str(error)[:300], event["id"]))
+                many(db, "UPDATE pending_events SET last_error=%s WHERE id=%s",
+                     [(str(error)[:300], event_id) for event_id in event_ids])
     return {"processed": len(events)}
