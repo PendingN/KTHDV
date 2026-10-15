@@ -3,6 +3,7 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import type { Comparison, Currency, Report } from "@/lib/contracts";
 import { formatMoney, monthRange, previousRange } from "@/lib/money";
+import { TableSkeleton } from "./loading";
 import {
   Page,
   Panel,
@@ -73,7 +74,7 @@ export function Reports() {
         }}
       />
       <Panel title="Thu chi trong kỳ">
-        <ResourceState resource={report} />
+        <ResourceState resource={report} fallback={<TableSkeleton />} />
         {report.data && (
           <>
             <p className="mb-4 text-xs text-muted-foreground">
@@ -93,7 +94,15 @@ export function Reports() {
             onChange={setPrevious}
           />
         </div>
-        <ResourceState resource={comparison} />
+        <ResourceState
+          resource={comparison}
+          fallback={
+            <div className="space-y-5">
+              <TableSkeleton />
+              <TableSkeleton />
+            </div>
+          }
+        />
         {comparison.data && (
           <div className="space-y-5">
             <TotalsTable report={comparison.data.previous} />

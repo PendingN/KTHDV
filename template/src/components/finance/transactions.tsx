@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import type { Category, Transaction, Wallet } from "@/lib/contracts";
 import { amountInput, formatMoney, monthRange, today } from "@/lib/money";
+import { TableSkeleton } from "./loading";
 import {
   Page,
   Panel,
@@ -84,8 +85,8 @@ export function Transactions({
           setOffset(0);
         }}
       />
-      <ResourceState resource={wallets} />
-      <ResourceState resource={categories} />
+      <ResourceState resource={wallets} fallback={null} />
+      <ResourceState resource={categories} fallback={null} />
       {wallets.data &&
         categories.data &&
         (!activeWallets.length || !activeCategories.length) && (
@@ -99,6 +100,7 @@ export function Transactions({
       <Panel title="Lịch sử giao dịch">
         <ResourceState
           resource={transactions}
+          fallback={<TableSkeleton columns={6} />}
           empty={transactions.data?.length === 0}
         />
         {!!items.length && (

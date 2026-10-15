@@ -28,7 +28,7 @@ export function Notifications() {
           <div
             key={n.id}
             className={
-              "flex flex-wrap items-center justify-between gap-4 border-b p-4 " +
+              "motion-item flex flex-wrap items-center justify-between gap-4 border-b p-4 transition-colors duration-200 " +
               (!n.is_read ? "bg-muted/40" : "")
             }
           >

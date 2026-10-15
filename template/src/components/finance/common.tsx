@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { LoaderCircleIcon } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,24 +29,32 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { currencies } from "@/lib/money";
+import { ListSkeleton } from "./loading";
 
 export function useResource<T>(service: string, route: string) {
   const [version, setVersion] = useState(0);
-  const key = service + route + version;
-  const [state, setState] = useState<{ key: string; data?: T; error?: string }>(
-    { key: "" },
-  );
+  const source = service + ":" + route;
+  const key = source + ":" + version;
+  const [state, setState] = useState<{
+    key: string;
+    source?: string;
+    data?: T;
+    error?: string;
+  }>({ key: "" });
   useEffect(() => {
     const controller = new AbortController();
     api<T>(service, route, { signal: controller.signal })
-      .then((data) => setState({ key, data }))
+      .then((data) => {
+        if (!controller.signal.aborted) setState({ key, source, data });
+      })
       .catch((error) => {
-        if (!controller.signal.aborted) setState({ key, error: error.message });
+        if (!controller.signal.aborted)
+          setState({ key, source, error: error.message });
       });
     return () => controller.abort();
-  }, [service, route, key]);
+  }, [service, route, source, key]);
   return {
-    data: state.key === key ? state.data : undefined,
+    data: state.source === source ? state.data : undefined,
     error: state.key === key ? state.error : undefined,
     loading: state.key !== key,
     reload: () => setVersion((v) => v + 1),
@@ -61,7 +70,10 @@ export function Page({
   children: ReactNode;
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 p-4 md:p-7">
+    <div
+      key={title}
+      className="motion-page mx-auto flex w-full max-w-7xl flex-col gap-5 p-4 md:p-7"
+    >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
@@ -103,7 +115,7 @@ export function Notice({
     <div
       role={error ? "alert" : "status"}
       className={
-        "rounded-lg border p-3 text-sm " +
+        "motion-feedback rounded-lg border p-3 text-sm " +
         (error
           ? "border-destructive/30 bg-destructive/5 text-destructive"
           : "bg-muted/40 text-muted-foreground")
@@ -113,19 +125,29 @@ export function Notice({
     </div>
   );
 }
+export function Spinner() {
+  return (
+    <LoaderCircleIcon
+      aria-hidden="true"
+      className="size-4 shrink-0 animate-spin"
+    />
+  );
+}
 export function ResourceState({
   resource,
   empty = false,
+  fallback = <ListSkeleton />,
 }: {
-  resource: { loading: boolean; error?: string; reload: () => void };
+  resource: {
+    loading: boolean;
+    data?: unknown;
+    error?: string;
+    reload: () => void;
+  };
   empty?: boolean;
+  fallback?: ReactNode;
 }) {
-  if (resource.loading)
-    return (
-      <p role="status" className="py-2 text-sm text-muted-foreground">
-        Đang tải…
-      </p>
-    );
+  if (resource.loading && resource.data === undefined) return fallback;
   if (resource.error)
     return (
       <div className="space-y-3">
@@ -166,7 +188,7 @@ export function DataTable({
         </TableHeader>
         <TableBody>
           {rows.map((row) => (
-            <TableRow key={row.id}>
+            <TableRow key={row.id} className="motion-item">
               {row.cells.map((cell, i) => (
                 <TableCell key={i} className="max-w-80 whitespace-normal">
                   {cell}
@@ -288,7 +310,8 @@ export function Editor({
   onSave: (values: Values) => Promise<unknown>;
   onClose: () => void;
 }) {
-  const [values, setValues] = useState(initial),
+  const [open, setOpen] = useState(true),
+    [values, setValues] = useState(initial),
     [busy, setBusy] = useState(false),
     [error, setError] = useState<ApiError | null>(null);
   const visible = typeof fields === "function" ? fields(values) : fields;
@@ -313,7 +336,7 @@ export function Editor({
     setError(null);
     try {
       await onSave(values);
-      onClose();
+      setOpen(false);
     } catch (e) {
       setError(
         e instanceof ApiError
@@ -329,9 +352,12 @@ export function Editor({
   }
   return (
     <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open && !busy) onClose();
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!busy) setOpen(nextOpen);
+      }}
+      onOpenChangeComplete={(isOpen) => {
+        if (!isOpen) onClose();
       }}
     >
       <DialogContent
@@ -342,7 +368,7 @@ export function Editor({
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        <form onSubmit={save} className="space-y-4">
+        <form onSubmit={save} aria-busy={busy} className="space-y-4">
           <fieldset disabled={busy} className="grid gap-4 sm:grid-cols-2">
             {visible.map((field) => (
               <FieldInput
@@ -362,11 +388,12 @@ export function Editor({
               type="button"
               variant="outline"
               disabled={busy}
-              onClick={onClose}
+              onClick={() => setOpen(false)}
             >
               Hủy
             </Button>
             <Button type="submit" disabled={busy}>
+              {busy && <Spinner />}
               {busy ? "Đang lưu…" : "Lưu"}
             </Button>
           </div>
@@ -403,7 +430,14 @@ export function Action({
   }
   return (
     <span className="inline-flex flex-col items-start gap-1">
-      <Button size="sm" variant="outline" disabled={busy} onClick={act}>
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={busy}
+        aria-busy={busy}
+        onClick={act}
+      >
+        {busy && <Spinner />}
         {busy ? "Đang xử lý…" : children}
       </Button>
       {error && (
@@ -468,14 +502,26 @@ export function DateRange({
   );
 }
 export function Progress({ value }: { value: number }) {
+  const percent = Math.max(0, Math.min(100, value));
   return (
     <div className="space-y-1">
       <progress
         max={100}
-        value={Math.max(0, Math.min(100, value))}
+        value={percent}
         aria-label="Tiến độ"
-        className="h-2 w-full accent-foreground"
+        className="sr-only"
       />
+      <div
+        aria-hidden="true"
+        className="h-2 overflow-hidden rounded-full bg-muted"
+      >
+        <div
+          className="motion-progress h-full origin-left rounded-full bg-foreground"
+          style={{
+            transform: `scaleX(${percent / 100})`,
+          }}
+        />
+      </div>
       <p className="text-xs text-muted-foreground">
         {value.toLocaleString("vi-VN")}%
       </p>

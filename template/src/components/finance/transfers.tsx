@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import type { Wallet } from "@/lib/contracts";
 import { today, formatMoney } from "@/lib/money";
+import { CardsSkeleton } from "./loading";
 import {
   Page,
   Panel,
@@ -39,7 +40,10 @@ export function Transfers() {
         </Button>
       }
     >
-      <ResourceState resource={wallets} />
+      <ResourceState
+        resource={wallets}
+        fallback={<CardsSkeleton layout="balances" />}
+      />
       {success && <Notice>Đã chuyển tiền.</Notice>}
       {wallets.data && !source && (
         <Notice>

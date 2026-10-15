@@ -77,6 +77,36 @@ try {
     ),
   );
   check("register, login and HttpOnly session");
+  let releaseWallets;
+  const walletsReady = new Promise((resolve) => {
+    releaseWallets = resolve;
+  });
+  const holdWallets = async (route) => {
+    await walletsReady;
+    await route.continue();
+  };
+  await page.route("**/api/ledger/wallets", holdWallets);
+  await page.goto(origin + "/accounts");
+  await page.locator('[data-slot="skeleton"]').first().waitFor();
+  assert.ok(
+    await page
+      .getByRole("status")
+      .filter({ hasText: "Đang tải dữ liệu" })
+      .count(),
+  );
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Thêm ví", exact: true })
+      .isEnabled(),
+    true,
+  );
+  releaseWallets();
+  await page.waitForLoadState("networkidle");
+  await page.unroute("**/api/ledger/wallets", holdWallets);
+  assert.equal(await page.locator('[data-slot="skeleton"]').count(), 0);
+  check(
+    "initial skeleton keeps actions usable and disappears after data arrives",
+  );
   await goto("/accounts");
   await page.getByRole("button", { name: "Thêm ví", exact: true }).click();
   await fill("Tên", "Ví chính QA");
@@ -175,12 +205,20 @@ try {
   await fill("Số tiền mục tiêu", "500000");
   await save();
   await visible("Mục tiêu QA");
+  const goalProgress = await page
+    .getByRole("progressbar")
+    .last()
+    .elementHandle();
   await page.getByRole("button", { name: "Góp mục tiêu", exact: true }).click();
   await fill("Số tiền góp (VND)", "50000");
   await save();
+  assert.ok(await goalProgress.evaluate((element) => element.isConnected));
+  assert.equal(await goalProgress.getAttribute("value"), "10");
   assert.equal(Number((await data("planning/goals"))[0].saved_minor), 50000);
   assert.deepEqual(await data("ledger/wallets"), wallets);
-  check("budgets, goals and contributions without wallet debit");
+  check(
+    "budgets, goals and contributions preserve progress DOM without wallet debit",
+  );
   await goto("/subscriptions");
   await page
     .getByRole("button", { name: "Thêm khoản định kỳ", exact: true })

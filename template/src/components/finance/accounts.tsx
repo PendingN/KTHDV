@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import type { Wallet, Category } from "@/lib/contracts";
 import { formatMoney } from "@/lib/money";
+import { CardsSkeleton, TableSkeleton } from "./loading";
 import {
   Page,
   Panel,
@@ -45,12 +46,16 @@ export function Accounts() {
       }
     >
       <Panel title="Ví tiền">
-        <ResourceState resource={wallets} empty={wallets.data?.length === 0} />
+        <ResourceState
+          resource={wallets}
+          empty={wallets.data?.length === 0}
+          fallback={<CardsSkeleton />}
+        />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {wallets.data?.map((w) => (
             <div
               key={w.id}
-              className="space-y-4 rounded-xl border bg-muted/20 p-5"
+              className="motion-item space-y-4 rounded-xl border bg-muted/20 p-5"
             >
               <div className="flex items-center justify-between">
                 <WalletIcon className="size-5 text-muted-foreground" />
@@ -96,6 +101,7 @@ export function Accounts() {
       <Panel title="Danh mục thu chi">
         <ResourceState
           resource={categories}
+          fallback={<TableSkeleton />}
           empty={categories.data?.length === 0}
         />
         {!!categories.data?.length && (
