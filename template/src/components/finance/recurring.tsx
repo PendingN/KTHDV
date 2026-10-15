@@ -5,6 +5,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import type { Subscription, Suggestion } from "@/lib/contracts";
 import { amountInput, formatMoney, today } from "@/lib/money";
+import { TableSkeleton } from "./loading";
 import {
   Page,
   Panel,
@@ -63,6 +64,7 @@ export function Recurring() {
       <Panel title="Danh sách định kỳ">
         <ResourceState
           resource={subscriptions}
+          fallback={<TableSkeleton columns={5} />}
           empty={subscriptions.data?.length === 0}
         />
         {!!subscriptions.data?.length && (

@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { api, ApiError } from "@/lib/api";
 import type { Conversion, Rate } from "@/lib/contracts";
 import { today } from "@/lib/money";
+import { ListSkeleton, TableSkeleton } from "./loading";
 import {
   Page,
   Panel,
   Notice,
   ResourceState,
+  Spinner,
   DataTable,
   FieldInput,
   currencyOptions,
@@ -57,7 +59,7 @@ export function Exchange() {
     <Page title="Quy đổi tiền tệ">
       <div className="grid items-start gap-6 lg:grid-cols-2">
         <Panel title="Quy đổi">
-          <form className="space-y-4" onSubmit={convert}>
+          <form className="space-y-4" aria-busy={busy} onSubmit={convert}>
             <fieldset disabled={busy} className="grid gap-4 sm:grid-cols-2">
               {fields.map((f) => (
                 <FieldInput
@@ -74,13 +76,16 @@ export function Exchange() {
             </fieldset>
             {error && <Notice error>{error.message}</Notice>}
             <Button type="submit" disabled={busy}>
+              {busy && <Spinner />}
               {busy ? "Đang quy đổi…" : "Quy đổi"}
             </Button>
           </form>
         </Panel>
         <Panel title="Kết quả">
-          {result ? (
-            <div className="space-y-4">
+          {busy ? (
+            <ListSkeleton />
+          ) : result ? (
+            <div className="motion-feedback space-y-4">
               <p className="text-sm text-muted-foreground">
                 {result.amount} {result.base}
               </p>
@@ -104,7 +109,11 @@ export function Exchange() {
         </Panel>
       </div>
       <Panel title="Tỷ giá hiện có">
-        <ResourceState resource={rates} empty={rates.data?.length === 0} />
+        <ResourceState
+          resource={rates}
+          empty={rates.data?.length === 0}
+          fallback={<TableSkeleton />}
+        />
         {!!rates.data?.length && (
           <DataTable
             columns={["Cặp tiền tệ", "Tỷ giá", "Ngày hiệu lực", "Nguồn"]}

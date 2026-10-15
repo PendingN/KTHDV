@@ -22,6 +22,7 @@ import {
   useResource,
 } from "./common";
 import { TotalsTable } from "./reports";
+import { DashboardSkeleton, TableSkeleton } from "./loading";
 export function Dashboard() {
   const [range, setRange] = useState(monthRange),
     query = "?start=" + range.start + "&end=" + range.end;
@@ -50,7 +51,7 @@ export function Dashboard() {
       }
     >
       <DateRange range={range} onChange={setRange} />
-      <ResourceState resource={dashboard} />
+      <ResourceState resource={dashboard} fallback={<DashboardSkeleton />} />
       {dashboard.data && (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -136,6 +137,7 @@ export function Dashboard() {
       <Panel title="Giao dịch trong kỳ">
         <ResourceState
           resource={transactions}
+          fallback={<TableSkeleton />}
           empty={transactions.data?.length === 0}
         />
         {!!transactions.data?.length && (

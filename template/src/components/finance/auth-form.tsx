@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { WalletIcon, ArrowRightIcon } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { FieldInput, Notice, type Field } from "./common";
+import { FieldInput, Notice, Spinner, type Field } from "./common";
 
 export function AuthForm({ register = false }: { register?: boolean }) {
   const router = useRouter(),
@@ -84,7 +84,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
         <p className="text-xs text-zinc-500">Quản lý tài chính cá nhân</p>
       </aside>
       <main className="flex flex-1 items-center justify-center px-6 py-12">
-        <div className="w-full max-w-sm">
+        <div className="motion-page w-full max-w-sm">
           <Link
             href="/"
             className="mb-10 flex items-center gap-2 font-semibold lg:hidden"
@@ -95,7 +95,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
           <h1 className="mb-8 text-3xl font-semibold tracking-tight">
             {register ? "Tạo tài khoản" : "Chào mừng trở lại"}
           </h1>
-          <form onSubmit={submit} className="space-y-5">
+          <form onSubmit={submit} aria-busy={busy} className="space-y-5">
             <fieldset disabled={busy} className="space-y-5">
               {fields.map((field) => (
                 <FieldInput
@@ -119,7 +119,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
                 : register && !created
                   ? "Tạo tài khoản"
                   : "Đăng nhập"}
-              <ArrowRightIcon />
+              {busy ? <Spinner /> : <ArrowRightIcon />}
             </Button>
           </form>
           <p className="mt-7 text-sm text-muted-foreground">

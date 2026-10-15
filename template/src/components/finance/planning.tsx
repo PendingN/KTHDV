@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import type { Budget, Category, Goal } from "@/lib/contracts";
 import { amountInput, formatMoney, monthRange, today } from "@/lib/money";
+import { CardsSkeleton } from "./loading";
 import {
   Page,
   Panel,
@@ -123,7 +124,7 @@ export function Planning() {
         </>
       }
     >
-      <ResourceState resource={categories} />
+      <ResourceState resource={categories} fallback={null} />
       {categories.data && !expenses.length && (
         <Notice>
           <Link className="underline" href="/accounts">
@@ -141,10 +142,17 @@ export function Planning() {
             Kiểm tra ngưỡng cảnh báo
           </Action>
         </div>
-        <ResourceState resource={budgets} empty={budgets.data?.length === 0} />
+        <ResourceState
+          resource={budgets}
+          empty={budgets.data?.length === 0}
+          fallback={<CardsSkeleton layout="plans" />}
+        />
         <div className="grid gap-4 lg:grid-cols-2">
           {budgets.data?.map((b) => (
-            <div key={b.id} className="space-y-4 rounded-xl border p-5">
+            <div
+              key={b.id}
+              className="motion-item space-y-4 rounded-xl border p-5"
+            >
               <div className="flex justify-between gap-2">
                 <h2 className="font-medium">{b.name}</h2>
                 <span className="text-xs text-muted-foreground">
@@ -187,10 +195,17 @@ export function Planning() {
         <p className="mb-4 text-sm text-muted-foreground">
           Góp mục tiêu không trừ số dư ví.
         </p>
-        <ResourceState resource={goals} empty={goals.data?.length === 0} />
+        <ResourceState
+          resource={goals}
+          empty={goals.data?.length === 0}
+          fallback={<CardsSkeleton layout="plans" />}
+        />
         <div className="grid gap-4 lg:grid-cols-2">
           {goals.data?.map((g) => (
-            <div key={g.id} className="space-y-4 rounded-xl border p-5">
+            <div
+              key={g.id}
+              className="motion-item space-y-4 rounded-xl border p-5"
+            >
               <div className="flex justify-between gap-2">
                 <h2 className="font-medium">{g.name}</h2>
                 <span className="text-xs text-muted-foreground">
