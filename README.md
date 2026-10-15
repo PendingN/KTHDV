@@ -29,7 +29,20 @@ Sửa `config.local.json` nếu thông tin MySQL khác mặc định.
 .\.venv\Scripts\python.exe run.py
 ```
 
-Mở `http://127.0.0.1:3000` để đăng ký, đăng nhập và sử dụng dịch vụ; trang người dùng của Identity cũng có tại `http://127.0.0.1:8001/app`. Trang quản trị: `http://127.0.0.1:8090/admin`. Dùng `Ctrl+C` để dừng cả frontend và các service.
+Mở `http://127.0.0.1:3000` để đăng ký, đăng nhập và sử dụng dịch vụ. Trang quản trị: `http://127.0.0.1:8090/admin`. Dùng `Ctrl+C` để dừng cả frontend và các service.
+
+Bật MySQL trong XAMPP trước khi chạy. Chỉ mở một cửa sổ chạy toàn hệ thống; muốn chạy lại, nhấn `Ctrl+C` ở cửa sổ cũ. Runner kiểm tra các cổng và kết nối MySQL trước khi khởi động để tránh chạy dở dang.
+
+Nếu cổng mặc định thuộc ứng dụng khác, đổi cổng trong cùng cửa sổ PowerShell rồi chạy:
+
+```powershell
+$env:PORT_BASE = "18001"     # 6 API: 18001–18006
+$env:FRONTEND_PORT = "3100"
+$env:ADMIN_PORT = "8190"
+.\.venv\Scripts\python.exe run.py
+```
+
+Khi đó mở `http://127.0.0.1:3100` và trang admin `http://127.0.0.1:8190/admin`.
 
 Chạy riêng frontend khi các API đã chạy:
 
@@ -44,6 +57,9 @@ Có thể chạy riêng giao diện admin:
 ```powershell
 node giao_dien/main.js
 ```
+
+Trang HTML bổ sung từ remote vẫn có tại `http://127.0.0.1:8001/app` khi chạy Identity.
+
 Chạy riêng một service:
 
 ```powershell
@@ -52,18 +68,20 @@ Chạy riêng một service:
 
 Không commit `config.local.json` hoặc `data/internal.key`.
 
-## Kiểm thử frontend
+## Kiểm thử
 
 ```powershell
 npm.cmd --prefix template run lint
 node template/node_modules/typescript/bin/tsc --noEmit --project template/tsconfig.json
 npm.cmd --prefix template run build
 npm.cmd --prefix template test
+npm.cmd --prefix javascript test
+node javascript/recurring/main.js --self-test
 node --test giao_dien/*.test.cjs
 .\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py"
 ```
 
-Test frontend dùng Node.js 24, khởi động bản build trên cổng `3011` và API giả lập `18101–18106`; không ghi vào MySQL.
+Các test tự động dùng Node.js 24; test frontend khởi động bản build trên cổng `3011` và API giả lập `18101–18106`. Các test này không ghi vào MySQL; test PHP cần PHP có cURL.
 
 Kiểm thử trình duyệt (Chrome đã cài, frontend và 6 API đang chạy):
 

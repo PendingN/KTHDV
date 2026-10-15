@@ -2,5 +2,10 @@
   "name": "kthdv-thanh-vien-2",
   "private": true,
   "type": "module",
-  "dependencies": {"mysql2": "^3.15.0"}
+  "scripts": {
+    "test": "node --test common.test.js planning/usage.test.js"
+  },
+  "dependencies": {
+    "mysql2": "^3.15.0"
+  }
 }

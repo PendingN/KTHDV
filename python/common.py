@@ -2,9 +2,10 @@
 
 import hashlib
 import hmac
+import json
+import logging
 import os
 import secrets
-import json
 import re
 from contextlib import asynccontextmanager, contextmanager
 from decimal import Decimal
@@ -15,7 +16,7 @@ import httpx
 import pymysql
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -37,10 +38,6 @@ def money(value: Decimal, currency: str) -> int:
     if not value.is_finite() or scaled != scaled.to_integral_value():
         raise HTTPException(422, f"Số tiền {currency} có quá nhiều chữ số thập phân")
     return int(scaled)
-
-
-def display(value: int, currency: str) -> str:
-    return f"{Decimal(value) / 10 ** SCALES[currency]:.{SCALES[currency]}f}"
 
 
 def settings():
@@ -160,16 +157,6 @@ async def peer(name: str, method: str, path: str, *, token=None, user_id=None, *
     return response.json()
 
 
-async def ledger_records(user_id, start, end):
-    result = []
-    while True:
-        page = await peer("ledger", "GET", f"/internal/transactions/{user_id}", params={
-            "start": str(start), "end": str(end), "offset": len(result)})
-        result.extend(page)
-        if len(page) < 500:
-            return result
-
-
 bearer = HTTPBearer(auto_error=False)
 
 
@@ -225,8 +212,17 @@ def service(name: str, schema: str, tables: dict[str, str], actions: list[dict])
 
     @app.exception_handler(pymysql.IntegrityError)
     async def integrity_error(request, exc):
-        from fastapi.responses import JSONResponse
         return JSONResponse(status_code=409, content={"detail": "Dữ liệu trùng hoặc vi phạm ràng buộc"})
+
+    @app.exception_handler(pymysql.OperationalError)
+    async def database_error(request, exc):
+        logging.exception("Lỗi MySQL", exc_info=exc)
+        unavailable = exc.args[0] in (1040, 2002, 2003, 2006, 2013)
+        return JSONResponse(
+            status_code=503 if unavailable else 500,
+            content={"detail": "Chưa kết nối được cơ sở dữ liệu. Kiểm tra MySQL rồi thử lại."
+                     if unavailable else "Lỗi xử lý dữ liệu"},
+        )
 
     @app.get("/health")
     def health():
