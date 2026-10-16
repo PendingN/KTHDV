@@ -96,7 +96,7 @@ function configure(t, name, data = { Example: [{ id: 7, user_id: 1, name: 'Ví c
 test('all six source action lists render typed fields, ID helpers and query dates', async () => {
   for (const name of ['identity','ledger','planning','recurring','fx','reporting']) {
     const t = setup(); configure(t, name); await t.run('openAdmin()');
-    assert.equal(t.$('action-count').textContent, String(actionsFor(name).length).padStart(2,'0'));
+    assert.equal(t.$('action-count').textContent, String(actionsFor(name).length));
     assert.equal(t.$('nav').children.length, 6);
     assert.equal(t.$('service-cards').children.length, 6);
     for (const [i,a] of actionsFor(name).entries()) {
@@ -173,8 +173,8 @@ test('a successful mutation stays visible if table reload fails; errors do not c
 test('current health derives custom service ports without claiming other services are online', async () => {
   const t=setup();t.context.reply=()=>response({service:'ledger',status:'ok'});await t.run('checkService()');
   assert.equal(t.$('current-name').textContent,'Ledger');assert.equal(t.$('nav').children[0].href,'http://127.0.0.1:8090/admin?service=identity#overview');
-  assert.equal(t.$('service-cards').children[0].children[0].children[1].textContent,'Đã xây dựng');
-  t.context.location.hash='#toString';t.run('showView()');assert.equal(t.$('title').textContent,'Tổng quan services');
+  assert.equal(t.$('service-cards').children[0].children[0].children[1].textContent,'Chưa kiểm tra');
+  t.context.location.hash='#toString';t.run('showView()');assert.equal(t.$('title').textContent,'Tổng quan dịch vụ');
 });
 test('DELETE cancellation and duplicate submit protection', async () => {
   const t=setup();configure(t,'planning');await t.run('openAdmin()');
