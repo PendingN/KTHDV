@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hướng dẫn thuyết trình sáu dịch vụ KTHDV</title>
+<style>
+:root{color-scheme:light;font-family:Segoe UI,Arial,sans-serif;color:#17232e;background:#eef1f4;font-size:17px;line-height:1.7}
+*{box-sizing:border-box}body{margin:0}a{color:#145d78;text-decoration-thickness:1px;text-underline-offset:3px}
+.skip{position:fixed;left:12px;top:-70px;background:white;padding:10px;z-index:4}.skip:focus{top:8px}
+aside{position:fixed;inset:0 auto 0 0;width:270px;padding:28px 22px;background:#fff;border-right:1px solid #d9d9d9;overflow:auto}
+.label{font-size:12px;font-weight:700;letter-spacing:.13em;color:#4f6676}.brand{font-size:25px;font-weight:700;margin:6px 0 24px;color:#000}
+nav a{display:block;padding:9px 0;border-bottom:1px solid #edf0f2;font-size:14px;line-height:1.5;text-decoration:none;color:#283c4b}
+nav a:hover,nav a:focus{color:#00526f;text-decoration:underline}.download{font-size:14px;margin-top:26px}
+main{margin:30px 34px 60px 304px;max-width:1080px;background:white;padding:52px 64px 70px;border:1px solid #d9d9d9}
+h1,h2,h3,h4{color:#000;line-height:1.28;scroll-margin-top:24px}h1{font-size:34px;margin:0 0 20px;max-width:850px;font-weight:750}
+h2{font-size:27px;margin:62px 0 20px}h3{font-size:21px;margin:34px 0 15px}h4{font-size:18px;margin:28px 0 12px}
+p{margin:0 0 18px}h1+p{color:#566674;font-size:14px;margin-bottom:28px}li{margin-bottom:9px}ol,ul{padding-left:26px;margin:0 0 22px}
+code{font-family:Consolas,monospace;font-size:.88em;overflow-wrap:anywhere}p code,li code,td code{background:#f3f5f6;padding:1px 4px;border-radius:3px}
+pre{background:#f3f5f6;border:1px solid #d9d9d9;padding:18px 22px;line-height:1.55;overflow:auto;margin:20px 0 26px;white-space:pre-wrap}
+table{border-collapse:collapse;width:100%;margin:22px 0 28px;font-size:14px;line-height:1.55;table-layout:auto}th,td{border:1px solid #d9d9d9;padding:12px 13px;vertical-align:middle;overflow-wrap:anywhere;text-align:left}
+th{background:#dce9ef;color:#000;font-weight:650;overflow-wrap:normal}tbody tr:nth-child(even){background:#f7f9fa}strong{font-weight:650}
+.note{font-size:13px;color:#5c6973;margin-top:20px}.top{display:inline-block;font-size:14px;margin-top:30px}
+@media(min-width:1600px){main{margin-left:calc(270px + (100vw - 1400px)/2)}}
+@media(max-width:1050px){aside{position:static;width:auto;border-right:0;border-bottom:1px solid #d9d9d9;padding:22px}nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 22px}.brand{margin:4px 0 14px}.download{margin-top:15px}main{margin:18px;padding:32px;max-width:none}}
+@media(max-width:600px){:root{font-size:16px}main{margin:0;padding:28px 18px;border:0}h1{font-size:28px}h2{font-size:24px}h3{font-size:20px}th,td{font-size:12px;padding:8px 6px}nav{display:block}aside{padding:18px}.label{font-size:11px}}
+@media print{@page{size:A4;margin:17mm 17mm 18mm}body{background:white;font-size:10.5pt;line-height:1.45}aside,.skip,.top{display:none}main{border:0;margin:0;padding:0;max-width:none}h1{font-size:24pt}h2{font-size:18pt;margin-top:24pt;break-before:page}h3{font-size:14pt;margin-top:18pt}h4{font-size:11.5pt}h1,h2,h3,h4{break-after:avoid}p,li{orphans:3;widows:3}p{margin-bottom:9pt}table{font-size:9pt;margin:12pt 0 15pt}th,td{padding:7pt 8pt}thead{display:table-header-group}tr{break-inside:avoid}pre{break-inside:avoid;padding:12pt}a{color:inherit}}
+</style></head><body><a href="#content" class="skip">Chuyển đến nội dung</a>
+<aside aria-label="Mục lục"><div class="label">TÀI LIỆU THUYẾT TRÌNH</div><div class="brand">KTHDV · 6 dịch vụ</div>
+<nav><a href="#muc-2">Cách sử dụng tài liệu</a><a href="#muc-3">Tổng quan và cách chia ba phần</a><a href="#muc-9">Phần 1 Identity và Ledger</a><a href="#muc-23">Phần 2 Planning và Recurring</a><a href="#muc-40">Phần 3 FX và Reporting</a><a href="#muc-54">Kịch bản demo chung cho cả nhóm</a><a href="#muc-58">Câu hỏi thường gặp khi thuyết trình</a><a href="#muc-69">Bản ghi nhớ trước khi lên trình bày</a><a href="#muc-70">Nguồn đối chiếu trong dự án</a></nav>
+<p class="download"><a href="Bao_cao_6_dich_vu.md" download>Tải bản văn bản Markdown</a></p><p class="note">Đọc theo phần của mình, sau đó cùng tập kịch bản demo. Có thể dùng Ctrl+P để in hoặc lưu PDF.</p></aside>
+<main id="content"><h1 id="muc-1">Báo cáo và hướng dẫn thuyết trình sáu dịch vụ KTHDV</h1><p>Tài liệu đọc hiểu cho ba người thuyết trình • Đối chiếu mã nguồn ngày 16 tháng 10 năm 2026</p>
+<p>Hệ thống KTHDV hỗ trợ quản lý tài chính cá nhân qua sáu dịch vụ: xác thực người dùng, ghi nhận thu chi, lập kế hoạch, theo dõi khoản định kỳ, quy đổi tiền tệ và tổng hợp báo cáo. Tài liệu này giúp mỗi người hiểu hai dịch vụ, giải thích được chúng liên kết với nhau như thế nào và biết mở đoạn mã nào khi cần minh họa.</p>
+<p><strong>Cách chia đề xuất:</strong> Người 1 trình bày Identity và Ledger; Người 2 trình bày Planning và Recurring; Người 3 trình bày FX và Reporting. Mạch kể đi từ đăng nhập và ghi tiền, đến theo dõi kế hoạch, rồi đọc kết quả tài chính. Đây là cách chia để thuyết trình, không phải thay đổi người đã thực hiện mã nguồn.</p>
+<p><strong>Phạm vi kiểm chứng:</strong> Nội dung được đối chiếu trực tiếp với mã nguồn đang có trong thư mục dự án, kể cả thay đổi chưa commit. Các số tiền và kết quả dưới đây là ví dụ tính toán minh họa, không phải dữ liệu thật hoặc biên bản chạy thử. Chưa chạy lại toàn bộ sáu dịch vụ và MySQL trong lần biên soạn này.</p>
+<h2 id="muc-2">Cách sử dụng tài liệu</h2><ol>
+<li>Cả ba người đọc phần Tổng quan để thống nhất thuật ngữ và câu chuyện.</li>
+<li>Mỗi người đọc kỹ phần được giao, nhất là mục Luồng xử lý và Điểm cần nói chính xác.</li>
+<li>Mở mã nguồn theo đúng thứ tự được chỉ dẫn. Với mỗi hàm, trả lời bốn câu: nhận gì, kiểm tra gì, đọc hoặc ghi ở đâu, trả gì.</li>
+<li>Dùng lời trình bày mẫu làm khung nói, sau đó diễn đạt bằng lời của mình. Các đoạn mẫu là bản rút gọn; phần giải thích và demo mới tạo thành toàn bộ thời lượng.</li>
+<li>Cùng tập kịch bản liên hoàn ở cuối tài liệu. Trước buổi trình bày, chạy thử bằng một tài khoản demo riêng và ghi lại kết quả thực tế.</li>
+</ol>
+<h2 id="muc-3">Tổng quan và cách chia ba phần</h2><h3 id="muc-4">Phân chia nội dung thuyết trình</h3><table>
+<thead>
+<tr>
+<th>Người trình bày</th>
+<th>Hai dịch vụ</th>
+<th>Câu hỏi chính cần trả lời</th>
+<th>Thời lượng gợi ý</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Người 1</td>
+<td>Identity và Ledger</td>
+<td>Ai đang sử dụng và tiền được ghi nhận thế nào</td>
+<td>7 phút</td>
+</tr>
+<tr>
+<td>Người 2</td>
+<td>Planning và Recurring</td>
+<td>Đã chi bao nhiêu so với kế hoạch và sắp phải trả khoản gì</td>
+<td>7 phút</td>
+</tr>
+<tr>
+<td>Người 3</td>
+<td>FX và Reporting</td>
+<td>Quy đổi thế nào và xem kết quả thu chi ra sao</td>
+<td>6 phút</td>
+</tr>
+</tbody></table>
+<p>Mốc 20 phút là đề xuất để tập nói, chưa phải yêu cầu thời gian của giảng viên. Nếu chỉ có 12 phút, mỗi người nói khoảng 4 phút, giữ một luồng xử lý và một ví dụ cho mỗi dịch vụ; dùng bảng API để trả lời câu hỏi thay vì đọc hết trên lớp.</p>
+<p>Identity và Ledger liên quan vì mọi dữ liệu ví, danh mục và giao dịch phải gắn với một người dùng đã được xác thực. Planning và Recurring liên quan trực tiếp vì Planning nhờ Recurring lưu thông báo ngân sách. FX và Reporting cùng phục vụ việc đọc số liệu tài chính và cùng viết bằng PHP; <strong>Reporting hiện chưa gọi FX</strong>, vì vậy không vẽ mũi tên trực tiếp giữa hai dịch vụ này.</p>
+<p>Trong <code>KTHDV.docx</code>, phân công thực hiện được ghi như sau. Nhóm giữ bảng này khi cần nói ai đã làm phần nào; thứ tự nói đề xuất ở trên là một mục đích khác.</p>
+<table>
+<thead>
+<tr>
+<th>Thành viên trong báo cáo gốc</th>
+<th>MSSV</th>
+<th>Phần thực hiện ghi trong báo cáo gốc</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Nguyễn Thị Thanh Loan</td>
+<td>52400288</td>
+<td>Identity và FX</td>
+</tr>
+<tr>
+<td>Vũ Thuỳ Linh</td>
+<td>52400079</td>
+<td>Planning và Recurring</td>
+</tr>
+<tr>
+<td>Hà Tuấn Anh</td>
+<td>52400066</td>
+<td>Ledger và Reporting</td>
+</tr>
+</tbody></table>
+<p>Nếu cần mỗi người trình bày đúng phần đã thực hiện, có thể giữ ba cặp trong bảng gốc. Ledger và Reporting liên hệ rất chặt; Identity và FX ít liên quan về nghiệp vụ, nhưng vẫn có thể trình bày nối tiếp. Tài liệu chi tiết từng dịch vụ bên dưới dùng được cho cả hai cách phân chia.</p>
+<h3 id="muc-5">Sáu dịch vụ trong một câu chuyện</h3><p>Ví dụ, một sinh viên muốn ghi lại 2.000.000 đồng tiền sinh hoạt, khoản chi ăn uống và lịch đóng Internet. Identity xác định tài khoản của sinh viên. Ledger lưu tiền vào, tiền ra và số dư ví. Planning so sánh chi ăn uống với ngân sách. Recurring nhắc lịch Internet và hiển thị thông báo. FX giúp tính một khoản ngoại tệ theo tỷ giá đã nhập. Reporting tổng hợp thu chi từ Ledger để người dùng xem lại.</p>
+<table>
+<thead>
+<tr>
+<th>Dịch vụ</th>
+<th>Ý nghĩa dễ nhớ</th>
+<th>Công nghệ API hiện tại</th>
+<th>Cổng mặc định</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Identity</td>
+<td>Tài khoản và phiên đăng nhập</td>
+<td>Python với FastAPI và Uvicorn</td>
+<td>8001</td>
+</tr>
+<tr>
+<td>Ledger</td>
+<td>Sổ thu chi và biến động ví</td>
+<td>Python với FastAPI và Uvicorn</td>
+<td>8002</td>
+</tr>
+<tr>
+<td>Planning</td>
+<td>Ngân sách và mục tiêu</td>
+<td>Node.js với thư viện <code>node:http</code></td>
+<td>8003</td>
+</tr>
+<tr>
+<td>Recurring</td>
+<td>Khoản định kỳ và thông báo</td>
+<td>Node.js với thư viện <code>node:http</code></td>
+<td>8004</td>
+</tr>
+<tr>
+<td>FX</td>
+<td>Tỷ giá và quy đổi</td>
+<td>PHP thuần với PDO và BCMath</td>
+<td>8005</td>
+</tr>
+<tr>
+<td>Reporting</td>
+<td>Tổng hợp và xuất báo cáo</td>
+<td>PHP thuần với PDO và BCMath</td>
+<td>8006</td>
+</tr>
+</tbody></table>
+<p>Node.js hiện dùng bộ HTTP có sẵn, không dùng Express. PHP hiện dùng bộ định tuyến tự viết và máy chủ <code>php -S</code>, không dùng Laravel. Sáu dịch vụ trao đổi chủ yếu bằng HTTP và JSON, nên không cần viết cùng ngôn ngữ. CSV là một dạng phản hồi riêng ở chức năng xuất báo cáo.</p>
+<p>Giao diện người dùng Next.js nằm ở cổng 3000; trang quản trị Node.js nằm ở cổng 8090. Đây là hai thành phần giao diện và chuyển tiếp yêu cầu, không được tính thành dịch vụ nghiệp vụ thứ bảy và thứ tám. Cổng có thể thay đổi bằng cấu hình môi trường.</p>
+<h3 id="muc-6">Luồng liên kết cần nhớ</h3><p><strong>Luồng thao tác người dùng:</strong> Trình duyệt → Next.js <code>/api/{service}/...</code> → dịch vụ tương ứng → cơ sở dữ liệu của dịch vụ. Khi cần xác thực, dịch vụ nghiệp vụ hỏi Identity qua <code>/auth/me</code>.</p>
+<p><strong>Luồng cảnh báo ngân sách:</strong> Ledger lưu giao dịch và việc cần xử lý → <code>run.py</code> gọi Ledger dispatch → Ledger gọi Planning → Planning đọc lịch sử Ledger → Planning gửi thông báo sang Recurring → người dùng mở danh sách thông báo.</p>
+<p><strong>Luồng đọc số liệu:</strong> Reporting → Ledger để lấy giao dịch và ví. Recurring → Ledger để tìm mẫu chi lặp lại. FX đọc bảng tỷ giá của chính mình để quy đổi.</p>
+<p>Mũi tên trong các câu trên biểu thị bên khởi tạo lời gọi hoặc bước tiếp theo. Riêng luồng cảnh báo có nhiều lần trao đổi hai chiều: Planning gọi Ledger để lấy dữ liệu, sau đó nhận dữ liệu trả về. Đây là chuỗi HTTP, chưa có RabbitMQ hoặc Kafka.</p>
+<h3 id="muc-7">Những thuật ngữ cần hiểu trước</h3><table>
+<thead>
+<tr>
+<th>Thuật ngữ</th>
+<th>Diễn giải trong dự án</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>API và endpoint</td>
+<td>Cửa tiếp nhận một yêu cầu, ví dụ <code>POST /transactions</code> để tạo giao dịch</td>
+</tr>
+<tr>
+<td>GET và POST</td>
+<td>GET thường lấy dữ liệu; POST thực hiện tạo mới hoặc một thao tác nghiệp vụ</td>
+</tr>
+<tr>
+<td>PUT và PATCH</td>
+<td>PUT gửi bộ thông tin cập nhật; PATCH cập nhật một phần hoặc trạng thái theo route đã định nghĩa</td>
+</tr>
+<tr>
+<td>Token</td>
+<td>Chuỗi xác nhận phiên đăng nhập, được gửi tới API trong <code>Authorization: Bearer ...</code></td>
+</tr>
+<tr>
+<td>Xác thực và phân quyền</td>
+<td>Xác thực xác định người dùng; phân quyền quyết định người đó được làm gì</td>
+</tr>
+<tr>
+<td>Database transaction</td>
+<td>Nhóm thao tác SQL cùng thành công hoặc cùng được hoàn tác khi lỗi</td>
+</tr>
+<tr>
+<td>Giao dịch tài chính</td>
+<td>Một bản ghi thu, chi, chuyển ví hoặc đảo giao dịch; khác với database transaction</td>
+</tr>
+<tr>
+<td>Bút toán</td>
+<td>Dòng tăng hoặc giảm tiền trong bảng <code>entries</code> của một ví</td>
+</tr>
+<tr>
+<td>Idempotency</td>
+<td>Gửi lại cùng yêu cầu với cùng khóa mà không chủ động tạo thêm giao dịch mới</td>
+</tr>
+<tr>
+<td>Polling</td>
+<td>Bộ chạy gọi API kiểm tra lặp lại theo thời gian, thay vì có máy chủ đẩy thông báo tức thì</td>
+</tr>
+</tbody></table>
+<h3 id="muc-8">Dữ liệu được chia như thế nào</h3><p>Mỗi dịch vụ dùng một database riêng theo tiền tố mặc định <code>kthdv_</code>. Trong môi trường local, các database này có thể cùng nằm trên một máy chủ MySQL hoặc MariaDB. Vì vậy, “database riêng” không có nghĩa là đã có sáu máy chủ vật lý.</p>
+<table>
+<thead>
+<tr>
+<th>Database mặc định</th>
+<th>Các bảng được định nghĩa trong mã</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>kthdv_identity</code></td>
+<td><code>users</code>, <code>sessions</code></td>
+</tr>
+<tr>
+<td><code>kthdv_ledger</code></td>
+<td><code>wallets</code>, <code>categories</code>, <code>transactions</code>, <code>entries</code>, <code>pending_events</code></td>
+</tr>
+<tr>
+<td><code>kthdv_planning</code></td>
+<td><code>budgets</code>, <code>goals</code>, <code>goal_contributions</code>, <code>alerts</code></td>
+</tr>
+<tr>
+<td><code>kthdv_recurring</code></td>
+<td><code>subscriptions</code>, <code>payments</code>, <code>notifications</code></td>
+</tr>
+<tr>
+<td><code>kthdv_fx</code></td>
+<td><code>rates</code></td>
+</tr>
+<tr>
+<td><code>kthdv_reporting</code></td>
+<td><code>report_requests</code></td>
+</tr>
+</tbody></table>
+<p>Tổng cộng có 16 bảng trong định nghĩa hiện tại. Các khóa ngoại SQL chủ yếu nối bảng trong cùng một dịch vụ. Chẳng hạn, <code>user_id</code> trong Ledger tham chiếu người dùng về mặt nghiệp vụ nhưng không được khai báo thành khóa ngoại SQL sang database Identity. Khi trình bày ERD cần phân biệt quan hệ logic với ràng buộc SQL đã có.</p>
+<h2 id="muc-9">Phần 1 Identity và Ledger</h2><h3 id="muc-10">Mục tiêu của người trình bày thứ nhất</h3><p>Giúp người nghe hiểu hai việc nền tảng: hệ thống nhận biết người đang dùng bằng cách nào và ghi nhận tiền của người đó ra sao. Dành khoảng 1 phút giới thiệu toàn hệ thống, 2 phút cho Identity, 3 phút cho Ledger và 1 phút demo hoặc chuyển ý.</p>
+<h3 id="muc-11">Identity quản lý người dùng và phiên đăng nhập</h3><p>Identity chịu trách nhiệm đăng ký, đăng nhập, xác minh phiên, đăng xuất và cho admin khóa hoặc mở tài khoản người dùng. Có thể hình dung Identity là nơi cấp và kiểm tra thẻ ra vào cho hệ thống.</p>
+<p>Bảng <code>users</code> lưu email, tên, mật khẩu đã băm, vai trò, trạng thái hoạt động và thông tin lần đăng nhập thất bại. Bảng <code>sessions</code> lưu mã băm token, người sở hữu và thời điểm hết hạn. Mật khẩu được băm bằng scrypt với salt; token ngẫu nhiên được băm SHA-256 trước khi lưu trong bảng phiên. Đây là hai loại dữ liệu khác nhau, dùng hai cách xử lý khác nhau.</p>
+<h4 id="muc-12">Luồng đăng nhập từng bước</h4><ol>
+<li>Người dùng nhập email và mật khẩu. Giao diện gửi tới API đăng nhập của Identity.</li>
+<li>Hàm <code>login()</code> tìm tài khoản theo email và kiểm tra thời gian khóa tạm.</li>
+<li>Hệ thống so sánh mật khẩu với giá trị đã băm và kiểm tra tài khoản còn hoạt động.</li>
+<li>Nếu thông tin không hợp lệ, trả lỗi 401. Với tài khoản tồn tại, hệ thống tăng bộ đếm lỗi; từ lần thất bại thứ năm, đặt thời gian khóa thêm 120 giây. Yêu cầu đến trong thời gian đang khóa nhận 429.</li>
+<li>Nếu hợp lệ, tạo token ngẫu nhiên, lưu mã băm token và thời hạn 8 giờ; đồng thời đặt lại bộ đếm lỗi.</li>
+<li>API trả token và thời hạn phiên. Ở giao diện Next.js, máy chủ nhận token rồi lưu vào cookie <code>HttpOnly</code>, tên <code>kthdv_session</code>.</li>
+<li>Khi trình duyệt gọi chức năng khác, Next.js đọc cookie và thêm Bearer token vào yêu cầu tới backend. Dịch vụ nghiệp vụ gọi Identity <code>/auth/me</code> để kiểm tra phiên.</li>
+</ol>
+<p>Token hiện là chuỗi phiên ngẫu nhiên, <strong>không phải JWT</strong>. Không nên mô tả hệ thống là “giải mã JWT lấy user_id”. Identity tra bảng phiên để xác định người dùng. Đăng xuất xóa phiên hiện tại; khóa tài khoản xóa các phiên của tài khoản đó.</p>
+<h4 id="muc-13">API chính của Identity</h4><table>
+<thead>
+<tr>
+<th>Phương thức và đường dẫn</th>
+<th>Công dụng</th>
+<th>Điều kiện</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>POST /users</code></td>
+<td>Đăng ký tài khoản thường</td>
+<td>Email, tên và mật khẩu hợp lệ</td>
+</tr>
+<tr>
+<td><code>POST /auth/login</code></td>
+<td>Tạo phiên đăng nhập</td>
+<td>Thông tin đăng nhập đúng</td>
+</tr>
+<tr>
+<td><code>GET /auth/me</code></td>
+<td>Xem người dùng của phiên</td>
+<td>Bearer token còn hiệu lực</td>
+</tr>
+<tr>
+<td><code>POST /auth/logout</code></td>
+<td>Xóa phiên hiện tại</td>
+<td>Đang đăng nhập</td>
+</tr>
+<tr>
+<td><code>PATCH /users/{user_id}</code></td>
+<td>Khóa hoặc mở tài khoản</td>
+<td>Admin; không khóa tài khoản admin</td>
+</tr>
+</tbody></table>
+<p>Ví dụ đăng ký gửi <code>email</code>, <code>name</code>, <code>password</code>. Mật khẩu đăng ký phải dài từ 8 đến 128 ký tự. <code>role</code> không phải trường cho người đăng ký tự gửi để trở thành admin; tài khoản quản trị được tạo bằng chức năng riêng của runner.</p>
+<h4 id="muc-14">Thứ tự đọc mã Identity</h4><p>Mở <code>python/identity/main.py</code>, đọc <code>SCHEMA</code> trước để thấy hai bảng. Sau đó đọc các model <code>Register</code>, <code>Login</code>, <code>UserStatus</code> để hiểu dữ liệu đầu vào. Tiếp tục theo thứ tự <code>register()</code> → <code>login()</code> → <code>me()</code> → <code>logout()</code> → <code>set_status()</code>.</p>
+<p>Cuối cùng mở <code>python/common.py</code>: <code>password_hash()</code> và <code>password_valid()</code> giải thích mật khẩu; <code>user()</code> giải thích việc kiểm tra phiên; <code>admin()</code> giải thích quyền quản trị. <code>User</code> trong chữ ký hàm FastAPI là dependency xác thực đã khai báo, không phải thông tin người dùng mà trình duyệt được tùy ý gửi lên.</p>
+<p><strong>Câu tự kiểm tra:</strong> Nếu chỉ đổi <code>user_id</code> trên trình duyệt thì có được xem dữ liệu người khác không? Luồng thông thường lấy danh tính từ phiên đã xác thực, còn thao tác vào bản ghi có kiểm tra chủ sở hữu. Không dựa riêng vào một <code>user_id</code> do khách gửi.</p>
+<h3 id="muc-15">Ledger ghi nhận tiền và tính số dư</h3><p>Ledger quản lý ví, danh mục, giao dịch và các bút toán làm thay đổi ví. Đây là nguồn dữ liệu giao dịch mà Planning, Recurring và Reporting đọc qua API.</p>
+<p>Bảng <code>wallets</code> mô tả ví và tiền tệ. <code>categories</code> phân loại thu hoặc chi. <code>transactions</code> mô tả nghiệp vụ xảy ra. <code>entries</code> ghi tác động có dấu lên số dư. <code>pending_events</code> ghi việc cần nhờ Planning đánh giá sau khi giao dịch thu chi thay đổi.</p>
+<h4 id="muc-16">Cách hiểu amount minor và số dư</h4><p>Tiền được lưu ở đơn vị nhỏ nhất dưới dạng số nguyên. VND và JPY có hệ số 1; USD và EUR có hệ số 100. Vì vậy 50.000 VND được lưu là <code>50000</code>, còn 10,50 USD được lưu là <code>1050</code>. Trường có hậu tố <code>_minor</code> phải được hiểu theo tiền tệ đi kèm.</p>
+<p><strong>Số dư ví = tổng <code>delta_minor</code> của các dòng <code>entries</code> thuộc ví.</strong> Tạo ví không tự có tiền. Muốn có số dư ban đầu trong demo, ghi một giao dịch thu vào ví.</p>
+<table>
+<thead>
+<tr>
+<th>Nghiệp vụ minh họa</th>
+<th>Bút toán trên ví VND</th>
+<th>Số dư nếu ví bắt đầu bằng 0</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Thu tiền sinh hoạt 2.000.000</td>
+<td>+2.000.000</td>
+<td>2.000.000</td>
+</tr>
+<tr>
+<td>Chi ăn trưa 50.000</td>
+<td>−50.000</td>
+<td>1.950.000</td>
+</tr>
+<tr>
+<td>Đảo khoản chi 50.000</td>
+<td>+50.000</td>
+<td>2.000.000</td>
+</tr>
+<tr>
+<td>Ghi lại khoản chi đúng 40.000</td>
+<td>−40.000</td>
+<td>1.960.000</td>
+</tr>
+</tbody></table>
+<h4 id="muc-17">Luồng ghi một khoản chi</h4><ol>
+<li>Gửi <code>POST /transactions</code> với ví, danh mục, loại <code>expense</code>, số tiền, ngày và ghi chú.</li>
+<li>FastAPI kiểm tra cấu trúc và kiểu dữ liệu qua model <code>Transaction</code>; dependency <code>User</code> xác thực phiên.</li>
+<li><code>create_transaction()</code> mở một database transaction và kiểm tra <code>Idempotency-Key</code> nếu có.</li>
+<li><code>insert_transaction()</code> xác minh ví và danh mục thuộc người đang đăng nhập, còn hoạt động, loại danh mục khớp loại giao dịch.</li>
+<li><code>money()</code> chuyển số tiền sang đơn vị nhỏ nhất theo tiền tệ của ví.</li>
+<li>Ghi một dòng <code>transactions</code>, một dòng <code>entries</code> có dấu âm và một dòng <code>pending_events</code>.</li>
+<li>Nếu thành công, commit cả nhóm và trả mã giao dịch. Nếu phát sinh lỗi trong nhóm, rollback để tránh chỉ ghi được một phần.</li>
+</ol>
+<p>Ví dụ body hợp lệ, trong đó các ID cần thay bằng ID thực tế của tài khoản demo:</p>
+<pre><code class="language-json">{
+  &quot;wallet_id&quot;: 1,
+  &quot;category_id&quot;: 2,
+  &quot;kind&quot;: &quot;expense&quot;,
+  &quot;amount&quot;: &quot;50000&quot;,
+  &quot;occurred_on&quot;: &quot;2026-10-16&quot;,
+  &quot;note&quot;: &quot;Ăn trưa&quot;
+}
+</code></pre>
+<p><code>Idempotency-Key</code> là header tùy chọn. Gửi lại cùng khóa và cùng nội dung sẽ dùng lại giao dịch đã có; cùng khóa nhưng nội dung khác bị từ chối với 409. Không nên suy ra mọi API đều chống gửi lặp: cơ chế này đang nằm ở API tạo giao dịch. Bản thân endpoint còn có ràng buộc duy nhất trong database; không khẳng định mọi yêu cầu đồng thời đều nhận cùng một phản hồi thành công.</p>
+<h4 id="muc-18">Hủy và điều chỉnh mà vẫn giữ lịch sử</h4><p>Nếu ghi nhầm chi 50.000 thành chi 40.000, API điều chỉnh tạo một giao dịch đảo để triệt tiêu 50.000 rồi thêm giao dịch thay thế 40.000 trong cùng database transaction. Bản ghi gốc được giữ lại. <code>reversal_of</code> nối dòng đảo với giao dịch gốc; ràng buộc và kiểm tra giúp ngăn đảo cùng giao dịch gốc nhiều lần.</p>
+<p>Nhờ số tiền âm của dòng đảo, Planning và Reporting có thể cộng lịch sử để ra số đúng: 50.000 − 50.000 + 40.000 = 40.000. Đừng bỏ dòng đảo khi tính tổng mà vẫn giữ dòng gốc, vì như vậy tổng chi sẽ sai.</p>
+<h4 id="muc-19">Chuyển tiền giữa hai ví</h4><p><code>POST /transfers</code> tạo một giao dịch chuyển ví và hai bút toán: ví nguồn giảm, ví đích tăng. Hai ví phải khác nhau, thuộc cùng người dùng, còn hoạt động và <strong>cùng tiền tệ</strong>. Tổng tiền của hai ví không đổi. Reporting loại giao dịch chuyển ví khỏi tổng thu chi để tránh xem đây là thu nhập hoặc chi phí mới.</p>
+<p>Mã hiện tại không kiểm tra số dư đủ trước khi ghi chi hoặc chuyển ví; vì vậy số dư có thể âm. Ledger là sổ ghi nhận tài chính của bài tập, chưa phải hệ thống thanh toán ngân hàng. Cũng không nên gọi cấu trúc <code>entries</code> hiện tại là hệ thống kế toán kép đầy đủ.</p>
+<h4 id="muc-20">API chính của Ledger</h4><table>
+<thead>
+<tr>
+<th>Phương thức và đường dẫn</th>
+<th>Công dụng</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>POST /wallets</code>, <code>GET /wallets</code></td>
+<td>Tạo ví và xem ví kèm số dư</td>
+</tr>
+<tr>
+<td><code>POST /categories</code>, <code>GET /categories</code></td>
+<td>Tạo và xem danh mục thu chi</td>
+</tr>
+<tr>
+<td><code>PATCH /wallets/{id}</code>, <code>PATCH /categories/{id}</code></td>
+<td>Đổi tên và trạng thái sử dụng</td>
+</tr>
+<tr>
+<td><code>POST /transactions</code>, <code>GET /transactions</code></td>
+<td>Ghi và xem giao dịch theo thời gian</td>
+</tr>
+<tr>
+<td><code>POST /transactions/{id}/reverse</code></td>
+<td>Đảo giao dịch thu hoặc chi gốc</td>
+</tr>
+<tr>
+<td><code>POST /transactions/{id}/adjust</code></td>
+<td>Đảo giao dịch cũ và thêm bản thay thế</td>
+</tr>
+<tr>
+<td><code>POST /transfers</code></td>
+<td>Chuyển giữa hai ví cùng tiền tệ</td>
+</tr>
+</tbody></table>
+<p>Hai API nội bộ cần nhận biết: <code>GET /internal/transactions/{user_id}</code> cung cấp lịch sử cho dịch vụ khác; <code>POST /internal/dispatch</code> gửi việc đang chờ sang Planning. Chúng yêu cầu <code>X-Service-Key</code>, không dành cho giao diện người dùng gọi trực tiếp. Lịch sử nội bộ trả từng trang 500 dòng; bên gọi đọc tiếp bằng <code>offset</code>.</p>
+<h4 id="muc-21">Thứ tự đọc mã Ledger</h4><p>Trong <code>python/ledger/main.py</code>, đọc khai báo bảng → các model → <code>create_wallet()</code> và <code>wallets()</code> → <code>insert_transaction()</code> → <code>create_transaction()</code> → <code>reverse_in_db()</code> → <code>adjust()</code> → <code>transfer()</code> → <code>transaction_list()</code> → <code>dispatch()</code>.</p>
+<p>Mở thêm <code>python/common.py</code> để đọc <code>owned()</code>, <code>money()</code> và <code>database()</code>. Ba hàm này lần lượt trả lời: dữ liệu có thuộc người dùng không, số tiền được lưu ra sao và khi lỗi thì rollback ở đâu. Khi thuyết trình bằng mã, chỉ cần mở <code>insert_transaction()</code> và phép tổng <code>SUM(e.delta_minor)</code> để minh họa phần cốt lõi.</p>
+<h3 id="muc-22">Lời trình bày mẫu của người thứ nhất</h3><p>“Nhóm em xây dựng hệ thống quản lý tài chính cá nhân gồm sáu dịch vụ. Em trình bày phần nền tảng là Identity và Ledger. Identity quản lý tài khoản và phiên đăng nhập. Khi người dùng đăng nhập đúng, hệ thống tạo token có thời hạn. Các dịch vụ khác dùng token để hỏi Identity người đang thao tác là ai.</p>
+<p>Sau khi xác định người dùng, Ledger quản lý ví và giao dịch của người đó. Một khoản chi vừa có bản ghi mô tả giao dịch, vừa có bút toán âm làm giảm số dư ví. Ví dụ nhận 2 triệu rồi chi 50 nghìn thì ví còn 1 triệu 950 nghìn. Số dư được tính từ tổng bút toán.</p>
+<p>Nếu nhập sai, hệ thống giữ lịch sử bằng cách tạo dòng đảo rồi ghi lại khoản đúng. Các thay đổi liên quan được lưu trong cùng một transaction database. Ledger còn ghi việc cần xử lý để Planning đánh giá ngân sách sau đó.”</p>
+<p><strong>Câu chuyển cho người 2:</strong> “Khi đã có dữ liệu thu chi chính xác, phần tiếp theo dùng dữ liệu đó để theo dõi ngân sách và nhắc những khoản sắp đến hạn.”</p>
+<h2 id="muc-23">Phần 2 Planning và Recurring</h2><h3 id="muc-24">Mục tiêu của người trình bày thứ hai</h3><p>Giải thích cách hệ thống biến lịch sử thu chi thành thông tin để người dùng chủ động quản lý tiền. Planning trả lời “đã chi bao nhiêu so với hạn mức”; Recurring trả lời “khoản nào sắp đến hạn” và lưu thông báo. Dành khoảng 3 phút cho Planning, 3 phút cho Recurring và 1 phút cho luồng liên kết.</p>
+<h3 id="muc-25">Planning theo dõi ngân sách và mục tiêu</h3><p>Planning có hai nhóm chức năng. Ngân sách đặt giới hạn chi cho một danh mục trong một khoảng ngày. Mục tiêu ghi nhận số tiền muốn tích lũy, thời hạn và các lần đóng góp. Hai nhóm này cùng giúp lập kế hoạch nhưng cách lấy số liệu khác nhau: ngân sách đọc Ledger, còn đóng góp mục tiêu được ghi riêng ở Planning.</p>
+<p><code>budgets</code> lưu tên, chủ sở hữu, danh mục chi, tiền tệ, hạn mức, ngày đầu, ngày cuối và ngưỡng cảnh báo. <code>alerts</code> ghi các ngưỡng đã cảnh báo. <code>goals</code> lưu mục tiêu và tổng đã góp. <code>goal_contributions</code> lưu từng lần góp.</p>
+<h4 id="muc-26">Tính mức sử dụng ngân sách</h4><ol>
+<li>Khi tạo ngân sách, <code>budgetValues()</code> gọi Ledger <code>/categories</code> bằng token người dùng để kiểm tra danh mục chi tồn tại và còn hoạt động.</li>
+<li>Khi xem ngân sách, hàm <code>usage()</code> đọc các ngân sách của người dùng từ Planning.</li>
+<li>Với từng khoảng ngày, hàm lấy lịch sử tương ứng từ Ledger qua helper <code>records()</code>.</li>
+<li>Chỉ cộng các giao dịch <code>expense</code> đúng danh mục và tiền tệ, bao gồm số âm của dòng đảo.</li>
+<li>Trả <code>spent_minor</code> và <code>used_percent</code> để giao diện hiển thị.</li>
+</ol>
+<p><strong>Mức sử dụng = số đã chi ÷ hạn mức × 100%.</strong> Ví dụ hạn mức ăn uống là 100.000 VND, chi hợp lệ đang là 80.000 VND thì mức sử dụng là 80%. Nếu có hai ngân sách cùng khoảng ngày, mã dùng lại phần lịch sử đã lấy trong lượt tính đó rồi lọc theo danh mục và tiền tệ.</p>
+<h4 id="muc-27">Khi nào có cảnh báo</h4><p><code>evaluate()</code> kiểm tra ngưỡng do người dùng chọn, mặc định 80%, cùng ngưỡng 100%. Khi mức chi đạt hoặc vượt ngưỡng chưa được ghi nhận, Planning gọi Recurring <code>POST /internal/notifications</code> rồi lưu dấu trong <code>alerts</code>.</p>
+<p>Ví dụ từ 40% tăng lên 110% trong một lần, cả ngưỡng 80% và 100% đều có thể được cảnh báo. Nếu ngưỡng cấu hình là 100%, mã gộp hai ngưỡng trùng nhau thành một. Cảnh báo đã ghi theo cặp ngân sách và ngưỡng không được gửi lại trong các lượt đánh giá tiếp theo. Mã hiện chưa có cơ chế tự xóa dấu cảnh báo khi mức chi giảm sau khi đảo giao dịch.</p>
+<p>Có hai cách kích hoạt: người dùng bấm kiểm tra qua <code>POST /budgets/evaluate</code>, hoặc runner gọi luồng dispatch từ Ledger. <strong>Chỉ mở <code>GET /budgets</code> để xem mức sử dụng không tự tạo cảnh báo.</strong> Ngân sách mới tạo sau khi đã có chi tiêu nên được bấm kiểm tra ngay khi demo.</p>
+<h4 id="muc-28">Mục tiêu tiết kiệm hoạt động ra sao</h4><p>Ví dụ tạo mục tiêu mua laptop 15.000.000 VND rồi ghi góp 500.000 VND. Planning thêm một dòng <code>goal_contributions</code> và tăng <code>saved_minor</code> trong cùng transaction database. Tiến độ hiển thị khoảng 3,33%.</p>
+<p>Việc góp này chỉ là ghi nhận theo dõi. Request không chọn ví và hàm không gọi Ledger, nên không tự trừ 500.000 VND khỏi ví. Nếu cần phản ánh một nghiệp vụ tiền thực tế, người dùng phải ghi nhận nghiệp vụ tương ứng riêng ở Ledger.</p>
+<h4 id="muc-29">API chính của Planning</h4><table>
+<thead>
+<tr>
+<th>Phương thức và đường dẫn</th>
+<th>Công dụng</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>POST /budgets</code>, <code>GET /budgets</code></td>
+<td>Tạo ngân sách và xem mức đã sử dụng</td>
+</tr>
+<tr>
+<td><code>PUT /budgets/{id}</code>, <code>DELETE /budgets/{id}</code></td>
+<td>Cập nhật hoặc dừng ngân sách</td>
+</tr>
+<tr>
+<td><code>POST /budgets/evaluate</code></td>
+<td>Đánh giá ngưỡng và tạo thông báo</td>
+</tr>
+<tr>
+<td><code>POST /goals</code>, <code>GET /goals</code></td>
+<td>Tạo và xem mục tiêu</td>
+</tr>
+<tr>
+<td><code>PUT /goals/{id}</code>, <code>DELETE /goals/{id}</code></td>
+<td>Cập nhật hoặc kết thúc mục tiêu</td>
+</tr>
+<tr>
+<td><code>POST /goals/{id}/contributions</code></td>
+<td>Ghi một lần đóng góp</td>
+</tr>
+</tbody></table>
+<p>DELETE ngân sách hoặc mục tiêu hiện đặt <code>active=0</code>, không xóa vật lý lịch sử. Khi sửa ngân sách, không đổi danh mục, tiền tệ hoặc kỳ theo dõi; cần tạo ngân sách mới nếu đổi những thuộc tính đó. Mục tiêu cũng không cho đổi tiền tệ sau khi tạo.</p>
+<h4 id="muc-30">Thứ tự đọc mã Planning</h4><p>Đọc trường <code>schema</code> trong <code>javascript/planning/service.json</code> → <code>budgetValues()</code> và <code>goalValues()</code> trong <code>main.js</code> → <code>usage()</code> trong <code>usage.js</code> → <code>evaluate()</code> trong <code>main.js</code> → các nhánh <code>/budgets</code> → các nhánh <code>/goals</code> và <code>/contributions</code>.</p>
+<p>Trong <code>javascript/common.js</code>, <code>start()</code> tạo máy chủ và xác thực request trước khi gọi handler nghiệp vụ. <code>records()</code> đọc phân trang từ Ledger. <code>transaction()</code> và <code>owned()</code> giữ tính nhất quán và kiểm tra quyền trên bản ghi. Không nên tìm decorator như Python trong mã Node.js: bộ định tuyến ở đây dùng điều kiện trên <code>route</code> và <code>method</code>.</p>
+<h3 id="muc-31">Recurring theo dõi khoản định kỳ và thông báo</h3><p>Recurring quản lý những khoản lặp lại như Internet, tiền thuê nhà hoặc dịch vụ thuê bao. Dịch vụ lưu lịch, kiểm tra ngày cần nhắc, ghi nhận đã thanh toán và chuyển sang kỳ tiếp theo. Ngoài ra, nó nhận thông báo ngân sách do Planning gửi.</p>
+<p><code>subscriptions</code> lưu tên khoản, số tiền, tiền tệ, chu kỳ, hạn tiếp theo, ngày gốc và số ngày nhắc trước. <code>payments</code> lưu các kỳ đã đánh dấu thanh toán. <code>notifications</code> lưu thông báo, khóa chống trùng và trạng thái đã đọc.</p>
+<h4 id="muc-32">Luồng nhắc hạn dễ hiểu</h4><ol>
+<li>Tạo khoản Internet 200.000 VND, chu kỳ tháng, hạn tiếp theo 18/10/2026, nhắc trước 3 ngày.</li>
+<li>Ngày bắt đầu nhắc là 15/10/2026. Khi kiểm tra từ ngày đó trở đi và khoản còn hoạt động, mã tạo thông báo nếu chưa có.</li>
+<li>Khóa <code>subscription:{id}:{next_due}</code> xác định thông báo của đúng khoản và đúng kỳ, giúp lượt kiểm tra sau không chèn lại cùng thông báo.</li>
+<li>Người dùng mở thông báo hoặc đánh dấu đã đọc.</li>
+<li>Khi đánh dấu khoản đã thanh toán, mã lưu kỳ đã trả và đổi ngày đến hạn tiếp theo.</li>
+</ol>
+<p>Lịch nhắc hiện được xử lý bởi vòng lặp trong <code>run.py</code> hoặc API kiểm tra thủ công. Thông báo nằm trong ứng dụng; chưa có gửi email, SMS hoặc push qua nhà cung cấp bên ngoài trong luồng này.</p>
+<h4 id="muc-33">Vì sao có ngày gốc anchor day</h4><p>Hàm <code>nextDate()</code> hỗ trợ tuần, tháng và năm. Với tháng, nếu ngày gốc là 31 mà tháng kế tiếp chỉ có 28 ngày, hệ thống dùng ngày 28 nhưng vẫn giữ ngày gốc 31 để kỳ sau quay lại ngày 31.</p>
+<p>Ví dụ: 31/01/2027 → 28/02/2027 → 31/03/2027. Nếu chỉ cộng 30 ngày hoặc luôn lấy ngày 28 làm mốc mới, lịch có thể bị trôi. Chu kỳ tuần cộng 7 ngày. Mã cũng xử lý trường hợp ngày 29/02 khi chuyển sang năm không nhuận.</p>
+<h4 id="muc-34">Đánh dấu đã trả có thay đổi số dư không</h4><p>Không. <code>POST /subscriptions/{id}/paid</code> ghi bảng <code>payments</code> và cập nhật <code>next_due</code>. Phản hồi nhắc người dùng ghi khoản chi riêng ở Ledger. Giao diện hiện có đường dẫn hỗ trợ chuyển sang ghi khoản chi, nhưng hai thao tác vẫn riêng biệt.</p>
+<p>Vì mỗi lần bấm có thể chuyển sang một kỳ tiếp theo, không coi endpoint này là cơ chế chống nhấn lặp giống <code>Idempotency-Key</code> của Ledger. Khi demo, bấm một lần rồi quan sát ngày mới trước khi thao tác tiếp.</p>
+<h4 id="muc-35">Gợi ý khoản chi định kỳ</h4><p><code>GET /suggestions</code> đọc lịch sử Ledger của khoảng 180 ngày gần đây. Mã nhóm khoản chi theo ghi chú viết thường, số tiền và tiền tệ, bỏ các dòng đảo và giao dịch gốc được nhận diện đã đảo trong tập dữ liệu đọc được. Một nhóm được gợi ý theo tháng khi có ít nhất 3 lần và mọi khoảng cách giữa hai lần liên tiếp nằm trong 26 đến 35 ngày.</p>
+<p>Ví dụ ba khoản “Internet” cùng số tiền vào 16/08, 16/09 và 16/10 có thể đủ điều kiện. Đây là quy tắc nhận dạng đơn giản, chưa phải mô hình AI. Gợi ý cũng không tự tạo lịch mới: người dùng cần chọn tạo lịch theo dõi.</p>
+<h4 id="muc-36">API chính của Recurring</h4><table>
+<thead>
+<tr>
+<th>Phương thức và đường dẫn</th>
+<th>Công dụng</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>POST /subscriptions</code>, <code>GET /subscriptions</code></td>
+<td>Tạo và xem khoản định kỳ</td>
+</tr>
+<tr>
+<td><code>PUT /subscriptions/{id}</code>, <code>DELETE /subscriptions/{id}</code></td>
+<td>Sửa hoặc dừng theo dõi</td>
+</tr>
+<tr>
+<td><code>POST /subscriptions/{id}/paid</code></td>
+<td>Ghi nhận đã trả và chuyển kỳ</td>
+</tr>
+<tr>
+<td><code>POST /reminders/check</code></td>
+<td>Kiểm tra lịch nhắc cho người dùng hiện tại</td>
+</tr>
+<tr>
+<td><code>GET /notifications</code></td>
+<td>Xem tối đa 200 thông báo gần nhất</td>
+</tr>
+<tr>
+<td><code>PATCH /notifications/{id}/read</code></td>
+<td>Đánh dấu một thông báo đã đọc</td>
+</tr>
+<tr>
+<td><code>GET /suggestions</code></td>
+<td>Tìm nhóm chi có nhịp tháng</td>
+</tr>
+</tbody></table>
+<p>API nội bộ <code>/internal/notifications</code> nhận thông báo từ Planning; <code>/internal/reminders/check</code> kiểm tra lịch của tất cả người dùng. Các đường dẫn này được lớp dùng chung bảo vệ bằng khóa dịch vụ.</p>
+<h4 id="muc-37">Thứ tự đọc mã Recurring</h4><p>Đọc <code>javascript/recurring/service.json</code> để hiểu ba bảng. Trong <code>main.js</code>, đọc <code>subscriptionValues()</code> → <code>nextDate()</code> → <code>reminders()</code> → nhánh <code>/subscriptions/{id}/paid</code> → các nhánh <code>/notifications</code> → <code>/suggestions</code>. Hàm <code>nextDate()</code> và phần <code>--self-test</code> là nơi phù hợp để giải thích xử lý cuối tháng bằng ví dụ cụ thể.</p>
+<h3 id="muc-38">Luồng liên kết giữa hai dịch vụ</h3><p>Ledger ghi khoản chi → bảng <code>pending_events</code> có việc chưa gửi → runner gọi <code>/internal/dispatch</code> → Ledger gom việc theo người dùng → Planning tính lại ngân sách → Recurring lưu thông báo → Ledger đánh dấu việc đã gửi khi lời gọi đánh giá thành công.</p>
+<p>Nếu một lời gọi trong quá trình dispatch phát sinh lỗi, Ledger giữ việc chưa gửi và ghi <code>last_error</code> để lần sau thử lại. Phản hồi <code>processed</code> của dispatch hiện đếm số việc được lấy ra xử lý, không phải số thông báo đã gửi thành công. Cơ chế này giúp tách thao tác ghi tiền khỏi việc chờ gửi cảnh báo, nhưng chưa phải hệ thống hàng đợi có broker độc lập.</p>
+<p>Trong chế độ chạy toàn bộ, runner bắt đầu kiểm tra sau khoảng 5 giây, rồi đặt lượt tiếp theo khoảng 30 giây sau khi lượt hiện tại kết thúc. Vì thế không hứa thông báo xuất hiện tức thì hoặc đúng tuyệt đối sau 30 giây. Chạy bằng <code>--service</code> không kích hoạt vòng kiểm tra này.</p>
+<h3 id="muc-39">Lời trình bày mẫu của người thứ hai</h3><p>“Phần em phụ trách gồm Planning và Recurring. Planning dùng lịch sử từ Ledger để so sánh chi thực tế với ngân sách. Ví dụ đặt hạn mức ăn uống 100 nghìn và đã chi 80 nghìn thì hệ thống đạt ngưỡng cảnh báo 80%. Planning nhờ Recurring lưu thông báo để người dùng xem.</p>
+<p>Planning còn quản lý mục tiêu như mua laptop và các lần đóng góp. Đóng góp hiện chỉ ghi nhận tiến độ, chưa tự trừ tiền ví. Với Recurring, người dùng tạo các khoản lặp lại như Internet, chọn kỳ trả và số ngày nhắc trước. Khi kiểm tra tới thời điểm cần nhắc, hệ thống tạo thông báo và tránh tạo lại cùng thông báo của một kỳ.</p>
+<p>Khi người dùng đánh dấu đã trả, ngày đến hạn được chuyển sang kỳ tiếp theo. Phần tính ngày giữ ngày gốc để lịch cuối tháng không bị trôi. Việc ghi chi thật vẫn thực hiện riêng ở Ledger.”</p>
+<p><strong>Câu chuyển cho người 3:</strong> “Sau khi đã theo dõi chi tiêu và các khoản sắp đến hạn, người dùng cần xem tổng kết và có công cụ tính tiền ngoại tệ. Phần tiếp theo trình bày FX và Reporting.”</p>
+<h2 id="muc-40">Phần 3 FX và Reporting</h2><h3 id="muc-41">Mục tiêu của người trình bày thứ ba</h3><p>Giải thích cách quy đổi một số tiền và cách hệ thống tổng hợp dữ liệu đã ghi. Nêu rõ ranh giới giữa tính quy đổi, chuyển tiền thật và báo cáo theo từng tiền tệ. Dành khoảng 2 phút cho FX, 3 phút cho Reporting và 1 phút demo hoặc kết thúc.</p>
+<h3 id="muc-42">FX lưu tỷ giá và tính quy đổi</h3><p>FX là viết tắt của foreign exchange, trong dự án có nghĩa là dịch vụ tỷ giá và quy đổi. Admin nhập tỷ giá; người dùng chọn tiền nguồn, tiền đích, số tiền và ngày cần quy đổi. Dịch vụ trả kết quả tính toán cùng tỷ giá, ngày hiệu lực và nguồn.</p>
+<p>Bảng <code>rates</code> có <code>base</code>, <code>quote</code>, <code>rate</code>, <code>effective_on</code>, <code>source</code>. <code>base</code> là tiền nguồn, <code>quote</code> là tiền đích. Ví dụ base USD, quote VND, rate 25.000 được hiểu là 1 USD tương ứng 25.000 VND theo dữ liệu demo đã nhập. <strong>25.000 ở đây là tỷ giá giả định phục vụ bài tập, không phải tỷ giá thị trường được tra cứu.</strong></p>
+<h4 id="muc-43">Luồng quy đổi từng bước</h4><ol>
+<li>Admin gửi <code>POST /rates</code> để lưu tỷ giá cho một cặp tiền và ngày hiệu lực.</li>
+<li>Người dùng gửi <code>POST /convert</code> với <code>base</code>, <code>quote</code>, <code>amount</code>, <code>as_of</code>.</li>
+<li>Hệ thống kiểm tra tiền tệ hỗ trợ, số tiền dương và ngày hợp lệ.</li>
+<li>Nếu hai tiền tệ giống nhau, dùng tỷ giá 1. Nếu khác nhau, tìm đúng chiều cặp tiền và ngày hiệu lực gần nhất nhưng không lớn hơn <code>as_of</code>.</li>
+<li>Nếu không có tỷ giá phù hợp, trả 404 và yêu cầu admin nhập trước.</li>
+<li>Hàm <code>converted()</code> nhân số tiền với tỷ giá bằng BCMath, rồi làm tròn theo số chữ số thập phân của tiền đích.</li>
+<li>Trả số tiền sau quy đổi và thông tin tỷ giá đã dùng. Không ghi giao dịch ví.</li>
+</ol>
+<p>Ví dụ nhập USD → VND có hiệu lực 01/10 là 25.000 và 20/10 là 25.500. Yêu cầu ngày 16/10 dùng 25.000; tỷ giá ngày 20/10 chưa được áp dụng. Với 10,50 USD, kết quả minh họa là 10,50 × 25.000 = 262.500 VND.</p>
+<h4 id="muc-44">API chính của FX</h4><table>
+<thead>
+<tr>
+<th>Phương thức và đường dẫn</th>
+<th>Công dụng</th>
+<th>Quyền</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GET /rates</code></td>
+<td>Xem các tỷ giá đã lưu</td>
+<td>Người dùng đăng nhập</td>
+</tr>
+<tr>
+<td><code>POST /rates</code></td>
+<td>Nhập hoặc cập nhật tỷ giá cùng cặp và ngày</td>
+<td>Admin</td>
+</tr>
+<tr>
+<td><code>POST /convert</code></td>
+<td>Tính quy đổi tại ngày yêu cầu</td>
+<td>Người dùng đăng nhập</td>
+</tr>
+</tbody></table>
+<p>API người dùng Next.js chỉ mở xem tỷ giá và quy đổi; thao tác nhập tỷ giá thực hiện ở trang quản trị hoặc API backend với tài khoản admin. Khóa duy nhất của bảng theo cặp tiền và ngày cho phép cập nhật tỷ giá đã nhập ở đúng mốc đó.</p>
+<h4 id="muc-45">Những điểm cần nói chính xác</h4><p>FX hiện dùng tỷ giá nhập tay, chưa tự kết nối ngân hàng hoặc dịch vụ tỷ giá ngoài. Nếu chỉ có USD → VND, hệ thống không tự suy ra VND → USD bằng nghịch đảo, cũng không tự tìm đường quy đổi qua tiền tệ thứ ba.</p>
+<p>Quy đổi chỉ trả một kết quả tính toán. Nó không rút tiền từ ví USD rồi nạp vào ví VND. Ledger hiện chỉ hỗ trợ chuyển giữa ví cùng tiền tệ, nên không mô tả đây là chức năng chuyển ví đa tiền tệ đã hoàn thiện.</p>
+<p>BCMath giúp tính số thập phân bằng chuỗi để hạn chế sai số của số thực nhị phân. Ví dụ tự kiểm tra có trường hợp 1 × 1,005 USD làm tròn thành 1,01 USD. Hệ thống hỗ trợ VND, USD, EUR và JPY theo cấu hình đang có.</p>
+<h4 id="muc-46">Thứ tự đọc mã FX</h4><p>Đọc <code>php/fx/service.json</code> để hiểu bảng <code>rates</code> → <code>converted()</code> trong <code>php/fx/index.php</code> → nhánh <code>/rates</code> → nhánh <code>/convert</code>. Sau đó đọc <code>decimal_value()</code>, <code>currency_value()</code>, <code>date_value()</code> và <code>sql()</code> trong <code>php/common.php</code>.</p>
+<p><code>serve(&#39;fx&#39;, ...)</code> là lớp nhận HTTP, xác thực và gọi hàm xử lý nghiệp vụ. <code>sql()</code> dùng câu lệnh chuẩn bị sẵn với tham số. Như vậy file <code>index.php</code> tập trung vào nghiệp vụ, còn phần kết nối, phản hồi và xác thực được dùng chung.</p>
+<h3 id="muc-47">Reporting tổng hợp dữ liệu từ Ledger</h3><p>Reporting đọc giao dịch từ Ledger để tính thu, chi và chênh lệch trong khoảng ngày. Nó cung cấp báo cáo, dashboard, so sánh hai kỳ và xuất CSV. Dịch vụ này không sở hữu bản sao toàn bộ giao dịch tài chính.</p>
+<p>Bảng riêng <code>report_requests</code> ghi người đã yêu cầu báo cáo và khoảng ngày. Trong mã hiện tại, chỉ nhánh <code>GET /reports</code> thêm bản ghi vào bảng đó; không nên nói tất cả lần mở dashboard hoặc xuất CSV đều được ghi lại.</p>
+<h4 id="muc-48">Luồng tạo báo cáo</h4><ol>
+<li>Người dùng chọn ngày bắt đầu và kết thúc.</li>
+<li>Reporting xác thực qua Identity rồi kiểm tra khoảng ngày.</li>
+<li><code>report_data()</code> gọi <code>ledger_records()</code> để đọc lịch sử từ Ledger, từng trang tối đa 500 dòng cho tới hết.</li>
+<li>Chỉ tổng hợp <code>income</code> và <code>expense</code>, tách theo <code>currency</code>.</li>
+<li>Các dòng đảo có số tiền âm được cộng cùng nhóm để triệt tiêu tác động cũ.</li>
+<li>Tính <code>net_minor = income_minor − expense_minor</code>; chuyển thành chuỗi số tiền hiển thị theo tiền tệ.</li>
+<li>Trả dữ liệu hoặc viết CSV, tùy endpoint được gọi.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Ví dụ trong một kỳ</th>
+<th>Thu</th>
+<th>Chi</th>
+<th>Thu trừ chi</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>VND</td>
+<td>2.000.000</td>
+<td>80.000</td>
+<td>1.920.000</td>
+</tr>
+<tr>
+<td>USD</td>
+<td>20,00</td>
+<td>5,00</td>
+<td>15,00</td>
+</tr>
+</tbody></table>
+<p>Hai dòng tiền tệ phải được giữ riêng. Không được cộng 1.920.000 VND với 15 USD thành một tổng không rõ đơn vị. Reporting hiện chưa gọi FX để quy đổi về một đồng tiền chung.</p>
+<h4 id="muc-49">Phân biệt kết quả trong kỳ với số dư ví</h4><p>Thu trừ chi phản ánh các giao dịch nằm trong khoảng ngày chọn. Số dư ví là tổng bút toán của ví qua toàn bộ lịch sử mà truy vấn ví đang xét, không bị giới hạn bởi khoảng ngày báo cáo.</p>
+<p>Ví dụ trước kỳ báo cáo ví đã có 500.000 VND, trong kỳ thu 2.000.000 và chi 80.000 thì chênh lệch kỳ là 1.920.000, còn số dư ví là 2.420.000 nếu không có biến động khác. Đây là lý do hai số trên dashboard có thể khác nhau mà không phải lỗi.</p>
+<p><code>GET /dashboard</code> lấy báo cáo trong kỳ rồi gọi thêm Ledger <code>/wallets</code>. Dữ liệu trả về có danh sách ví và tổng số dư theo từng tiền tệ. Trong ví dụ tài khoản mới ở cuối tài liệu, hai số trùng nhau vì chưa có lịch sử trước kỳ.</p>
+<h4 id="muc-50">So sánh kỳ và xuất CSV</h4><p><code>GET /compare</code> tính báo cáo cho hai khoảng ngày, sau đó lấy kỳ hiện tại trừ kỳ trước cho từng tiền tệ và từng chỉ tiêu. Ví dụ kỳ trước chi 60.000 VND, kỳ này chi 80.000 VND thì chênh lệch chi là +20.000 VND. API này trả mức chênh lệch tuyệt đối, không tự trả phần trăm tăng trưởng.</p>
+<p><code>GET /reports.csv</code> xuất các cột <code>currency</code>, <code>income</code>, <code>expense</code>, <code>net</code>. File là bảng tổng hợp theo tiền tệ, không phải danh sách từng giao dịch, không phải file Excel <code>.xlsx</code> và chưa phải PDF. CSV có dấu BOM UTF-8 để hỗ trợ cách đọc mã hóa của một số phần mềm bảng tính.</p>
+<h4 id="muc-51">API chính của Reporting</h4><table>
+<thead>
+<tr>
+<th>Đường dẫn GET</th>
+<th>Công dụng</th>
+<th>Tham số</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/reports</code></td>
+<td>Tổng thu chi và ghi lần yêu cầu báo cáo</td>
+<td><code>start</code>, <code>end</code></td>
+</tr>
+<tr>
+<td><code>/dashboard</code></td>
+<td>Tổng thu chi, ví và tổng số dư theo tiền tệ</td>
+<td><code>start</code>, <code>end</code></td>
+</tr>
+<tr>
+<td><code>/compare</code></td>
+<td>So sánh hai kỳ</td>
+<td>Thêm <code>previous_start</code>, <code>previous_end</code></td>
+</tr>
+<tr>
+<td><code>/reports.csv</code></td>
+<td>Xuất bảng tổng hợp CSV</td>
+<td><code>start</code>, <code>end</code></td>
+</tr>
+</tbody></table>
+<p>Ví dụ: <code>/reports?start=2026-10-01&amp;end=2026-10-31</code>. Hai ngày đầu và cuối đều được tính trong truy vấn Ledger. Trường <code>record_count</code> đếm số dòng lịch sử đã đọc, có thể gồm giao dịch chuyển ví và dòng đảo; không phải chỉ đếm các khoản chi có hiệu lực.</p>
+<h4 id="muc-52">Thứ tự đọc mã Reporting</h4><p>Đọc <code>php/reporting/service.json</code> → <code>report_data()</code> trong <code>index.php</code> → nhánh <code>/reports</code> → <code>/dashboard</code> → <code>/compare</code> → đoạn tạo CSV. Trong <code>php/common.php</code>, đọc <code>ledger_records()</code>, <code>peer()</code>, <code>sum_money()</code> và <code>display_money()</code>.</p>
+<p>Khi mở mã để minh họa, tập trung vào điều kiện giữ <code>income</code> và <code>expense</code>, việc nhóm theo tiền tệ và công thức <code>net_minor</code>. Ba điểm này giải thích hầu hết con số xuất hiện trong báo cáo.</p>
+<h3 id="muc-53">Lời trình bày mẫu của người thứ ba</h3><p>“Phần cuối gồm FX và Reporting. FX quản lý tỷ giá do admin nhập và tính quy đổi theo ngày. Chẳng hạn với tỷ giá demo 1 USD bằng 25 nghìn VND, 10,50 USD được tính thành 262.500 VND. Hệ thống chọn tỷ giá có hiệu lực gần nhất trước hoặc đúng ngày yêu cầu và trả cả nguồn tỷ giá để người dùng biết số đó từ đâu.</p>
+<p>Reporting lấy giao dịch từ Ledger, cộng thu và chi theo từng tiền tệ, sau đó tính thu trừ chi. Giao dịch chuyển giữa các ví không được tính là thu hay chi mới. Những giao dịch đã điều chỉnh được phản ánh thông qua dòng đảo nên tổng vẫn đúng.</p>
+<p>Reporting hỗ trợ xem dashboard, so sánh hai kỳ và xuất CSV. Ở phiên bản hiện tại, báo cáo giữ VND, USD và các tiền tệ khác thành từng nhóm; chưa tự gọi FX để quy về một đơn vị. Qua ba phần, hệ thống đi từ ghi nhận dữ liệu đến theo dõi kế hoạch và xem lại kết quả tài chính.”</p>
+<h2 id="muc-54">Kịch bản demo chung cho cả nhóm</h2><h3 id="muc-55">Chuẩn bị trước buổi trình bày</h3><p>Sử dụng một tài khoản demo mới để tránh số liệu cũ làm kết quả lệch ví dụ. Bật MySQL, kiểm tra các thành phần đã cài theo README, rồi chạy toàn bộ dự án bằng lệnh dưới đây từ thư mục gốc. Nếu hệ thống đã chạy, dùng phiên đó hoặc dừng cửa sổ cũ trước; không mở thêm một bản trùng cổng.</p>
+<pre><code class="language-powershell">.\.venv\Scripts\python.exe run.py
+</code></pre>
+<p>Giao diện người dùng mặc định là <code>http://127.0.0.1:3000</code>; quản trị là <code>http://127.0.0.1:8090/admin</code>. Chuẩn bị sẵn một tài khoản admin nếu demo nhập tỷ giá. Lệnh tạo admin đã có trong README; không đưa mật khẩu hoặc nội dung khóa dịch vụ lên slide.</p>
+<p>Ví dụ dưới đây dùng kỳ tháng 10/2026. Với demo lịch nhắc ở ngày khác, đặt hạn tiếp theo bằng ngày demo cộng 2 ngày và nhắc trước 3 ngày. Nếu chỉ chạy riêng một nhóm bằng <code>--member</code>, các dịch vụ phụ thuộc vẫn cần được chạy để luồng liên dịch vụ hoạt động. Demo cả hệ thống nên dùng <code>run.py</code> không kèm lựa chọn nhóm.</p>
+<h3 id="muc-56">Các bước và kết quả mong đợi</h3><table>
+<thead>
+<tr>
+<th>Bước</th>
+<th>Người thực hiện</th>
+<th>Thao tác</th>
+<th>Kết quả mong đợi theo mã</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Người 1</td>
+<td>Đăng ký và đăng nhập tài khoản demo</td>
+<td>Vào được giao diện người dùng</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Người 1</td>
+<td>Tạo ví VND, danh mục thu Sinh hoạt và danh mục chi Ăn uống</td>
+<td>Ví ban đầu có số dư 0</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Người 1</td>
+<td>Ghi thu 2.000.000 rồi chi 50.000 trong tháng 10</td>
+<td>Ví còn 1.950.000</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Người 1</td>
+<td>Điều chỉnh khoản chi thành 40.000</td>
+<td>Ví còn 1.960.000; lịch sử giữ dòng gốc, đảo và thay thế</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Người 2</td>
+<td>Tạo ngân sách ăn uống 100.000, ngưỡng 80%, kỳ tháng 10</td>
+<td>Mức dùng hiện tại 40%</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Người 2</td>
+<td>Ghi thêm chi ăn uống 40.000 qua Ledger</td>
+<td>Tổng chi hợp lệ thành 80.000; số dư 1.920.000</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Người 2</td>
+<td>Bấm kiểm tra ngân sách, rồi mở thông báo</td>
+<td>Có cảnh báo đạt ngưỡng 80%; kiểm tra lại không tạo bản trùng</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Người 2</td>
+<td>Tạo mục tiêu 15 triệu và góp 500 nghìn</td>
+<td>Tiến độ khoảng 3,33%; số dư ví vẫn 1.920.000</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Người 2</td>
+<td>Tạo Internet 200 nghìn, hạn sau ngày demo 2 ngày, nhắc trước 3 ngày; kiểm tra nhắc</td>
+<td>Có thông báo khoản đến hạn</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Người 2</td>
+<td>Đánh dấu Internet đã trả đúng một lần</td>
+<td>Ngày đến hạn tăng một kỳ; ví vẫn 1.920.000</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Người 3</td>
+<td>Admin nhập USD → VND giá demo 25.000 có hiệu lực trước ngày quy đổi; user đổi 10,50 USD</td>
+<td>Trả 262.500 VND, không đổi số dư ví</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Người 3</td>
+<td>Xem báo cáo tháng 10 và xuất CSV</td>
+<td>Thu 2.000.000; chi 80.000; thu trừ chi 1.920.000 VND</td>
+</tr>
+</tbody></table>
+<p>Ở bước 10 cố ý chưa ghi khoản Internet vào Ledger để minh họa ranh giới chức năng. Nếu sau đó ghi chi Internet 200.000 VND vào đúng kỳ, tổng chi báo cáo thành 280.000 và số dư thành 1.720.000. Ngân sách Ăn uống vẫn 80% nếu Internet dùng danh mục chi riêng.</p>
+<p><strong>Tình trạng demo:</strong> Các giá trị trên là kết quả mong đợi được suy ra từ mã và phép tính. Nhóm cần chạy thử, chụp kết quả thật và đánh dấu bước nào đã đạt trước khi gọi đó là kết quả kiểm thử.</p>
+<h3 id="muc-57">Khi thao tác không ra kết quả như mong đợi</h3><table>
+<thead>
+<tr>
+<th>Hiện tượng</th>
+<th>Điều cần kiểm tra đầu tiên</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Không đăng nhập được</td>
+<td>Identity còn chạy, MySQL có kết nối, tài khoản có đang khóa hoặc nhập sai không</td>
+</tr>
+<tr>
+<td>Có chi nhưng ngân sách bằng 0</td>
+<td>Danh mục, tiền tệ, khoảng ngày có khớp không; đang dùng cùng tài khoản không</td>
+</tr>
+<tr>
+<td>Đạt 80% nhưng chưa thấy thông báo</td>
+<td>Đã bấm đánh giá chưa; runner có chạy toàn bộ không; Planning và Recurring có phản hồi không</td>
+</tr>
+<tr>
+<td>Không quy đổi được</td>
+<td>Đã nhập đúng chiều cặp tiền và ngày hiệu lực không lớn hơn ngày yêu cầu chưa</td>
+</tr>
+<tr>
+<td>Báo cáo lệch số dư</td>
+<td>Báo cáo chỉ tính trong kỳ; ví có lịch sử trước kỳ hay chuyển ví không</td>
+</tr>
+<tr>
+<td>Góp mục tiêu hoặc trả thuê bao nhưng ví không giảm</td>
+<td>Đây là hành vi hiện tại; cần ghi nghiệp vụ thực tế riêng ở Ledger</td>
+</tr>
+</tbody></table>
+<p>Không dùng riêng việc <code>/health</code> trả thành công để khẳng định toàn bộ nghiệp vụ đã chạy đúng. Với bài này, cần quan sát cả dữ liệu đầu vào, số dư, ngân sách, thông báo và báo cáo qua cùng một chuỗi thao tác.</p>
+<h2 id="muc-58">Câu hỏi thường gặp khi thuyết trình</h2><h3 id="muc-59">Vì sao chia thành sáu dịch vụ</h3><p>Mỗi dịch vụ sở hữu một nhóm trách nhiệm và dữ liệu rõ ràng. Ví dụ Ledger tập trung tính đúng tiền, còn Recurring tập trung lịch nhắc. Chúng có thể viết bằng công nghệ khác nhau vì giao tiếp qua HTTP. Đổi lại, phải xử lý xác thực, lỗi kết nối và chậm cập nhật giữa các dịch vụ. Trong bài tập, tách dịch vụ là cách thể hiện kiến trúc; chưa có đo đạc để khẳng định hệ thống nhanh hơn hoặc chịu tải tốt hơn ứng dụng nguyên khối.</p>
+<h3 id="muc-60">Có phải mỗi dịch vụ hoàn toàn độc lập không</h3><p>Chúng có tiến trình và database riêng nhưng vẫn phụ thuộc API của nhau. Phần lớn thao tác người dùng cần Identity. Planning, Recurring và Reporting cần Ledger cho các chức năng đọc lịch sử. Một dịch vụ dừng có thể làm chức năng liên quan không hoạt động; không nên nói các phần hoàn toàn không ảnh hưởng nhau.</p>
+<h3 id="muc-61">Hệ thống đã có gateway chưa</h3><p>Hiện có lớp chuyển tiếp API ở frontend Next.js và gateway phục vụ trang admin Node.js. Có thể giải thích đây là nơi giao diện gửi yêu cầu tới các backend đã cho phép. Không nên dùng mô tả cũ “hoàn toàn chưa có gateway”, cũng không nên suy ra đã có nền tảng gateway sản xuất với cân bằng tải, service discovery và giám sát phân tán.</p>
+<h3 id="muc-62">Token người dùng khác khóa nội bộ thế nào</h3><p>Bearer token gắn với một phiên người dùng. <code>X-Service-Key</code> dùng cho các API <code>/internal/...</code> như đọc lịch sử nội bộ, đánh giá ngân sách hoặc nhận thông báo. Một lời gọi giữa hai dịch vụ vẫn có thể mang token người dùng, ví dụ Reporting lấy danh sách ví hoặc Planning kiểm tra danh mục. Vì thế không nói mọi lời gọi giữa các dịch vụ đều dùng duy nhất khóa nội bộ.</p>
+<h3 id="muc-63">Nếu Planning lỗi khi người dùng ghi chi thì sao</h3><p>Thao tác ghi chi lưu giao dịch, bút toán và việc chờ trong cùng transaction database. Gọi Planning diễn ra sau, khi runner dispatch. Nếu bước gửi lỗi, việc vẫn chưa được đánh dấu đã gửi và có thể được thử lại. Chi tiêu đã ghi có thể xuất hiện trước cảnh báo. Đây là một dạng cập nhật sau giữa các dịch vụ, chưa có transaction phân tán bao trùm tất cả database.</p>
+<h3 id="muc-64">Có tự khóa chi tiêu khi vượt ngân sách không</h3><p>Không. Planning theo dõi và cảnh báo. Ledger hiện không gọi Planning để xin phép trước khi ghi chi, cũng không kiểm tra số dư đủ để ngăn số âm. Ngân sách không phải cơ chế chặn thanh toán.</p>
+<h3 id="muc-65">Tại sao giữ bản ghi khi hủy hoặc dừng sử dụng</h3><p>Ledger giữ giao dịch gốc và thêm dòng đảo để truy vết lịch sử. Ví, danh mục, ngân sách, mục tiêu và khoản định kỳ có trạng thái hoạt động để dừng sử dụng mà vẫn giữ dữ liệu cũ. Tuy nhiên cơ chế hủy giao dịch và cơ chế dừng một đối tượng là hai nghiệp vụ khác nhau.</p>
+<h3 id="muc-66">Dự án có AI và dữ liệu tỷ giá thời gian thực chưa</h3><p>Nhận diện khoản chi định kỳ hiện dùng quy tắc trên ghi chú, số tiền và khoảng cách ngày, chưa dùng mô hình học máy. Tỷ giá hiện do admin nhập. Nếu đề cập AI hoặc đồng bộ tỷ giá tự động thì phải đặt trong phần đề xuất phát triển, không mô tả là tính năng đã có.</p>
+<h3 id="muc-67">Tại sao cùng một khoản có trong Planning và Reporting</h3><p>Cả hai đọc nguồn Ledger nhưng trả lời câu hỏi khác nhau. Planning lọc chi theo danh mục và kỳ để so với hạn mức. Reporting cộng thu và chi theo kỳ và tiền tệ để tổng kết. Đọc chung nguồn giúp tránh mỗi nơi tự nhập một bộ lịch sử riêng.</p>
+<h3 id="muc-68">Phần nào mới có tài liệu API tự động đầy đủ</h3><p>Identity và Ledger dùng FastAPI nên có trang tài liệu API tự sinh. Node.js và PHP hiện cung cấp <code>/docs</code> dạng dữ liệu hành động, còn <code>/openapi.json</code> có phần <code>paths</code> rỗng. Không nên nói sáu dịch vụ đều có Swagger đầy đủ giống nhau.</p>
+<h2 id="muc-69">Bản ghi nhớ trước khi lên trình bày</h2><table>
+<thead>
+<tr>
+<th>Người</th>
+<th>Năm ý cần nhớ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Người 1</td>
+<td>Token phiên không phải JWT; mỗi bản ghi gắn người dùng; tiền lưu theo đơn vị nhỏ nhất; số dư là tổng bút toán; điều chỉnh bằng đảo và ghi mới</td>
+</tr>
+<tr>
+<td>Người 2</td>
+<td>Ngân sách đọc Ledger; đạt ngưỡng thì Planning gửi sang Recurring; mục tiêu không tự trừ ví; trả định kỳ không tự ghi chi; lịch cuối tháng giữ ngày gốc</td>
+</tr>
+<tr>
+<td>Người 3</td>
+<td>Tỷ giá nhập tay; chọn tỷ giá theo ngày; quy đổi không chuyển tiền; báo cáo nhóm theo tiền tệ; số dư ví khác thu trừ chi trong kỳ</td>
+</tr>
+</tbody></table>
+<p>Mỗi người nên tập giải thích được phần của mình trong 60 giây trước, rồi mới thêm ví dụ và đoạn mã. Khi bị hỏi sâu, dùng đúng tên hàm ở bảng tra cứu dưới đây; không cần học thuộc toàn bộ file.</p>
+<h2 id="muc-70">Nguồn đối chiếu trong dự án</h2><p>Các đường dẫn dưới đây tính từ thư mục gốc KTHDV. Tên hàm hoặc nhánh xử lý được ghi để dễ tìm bằng chức năng tìm kiếm trong trình soạn thảo. Khi mã thay đổi, cần đối chiếu lại trước khi dùng tài liệu để bảo vệ tính năng mới.</p>
+<table>
+<thead>
+<tr>
+<th>Nội dung</th>
+<th>File cần mở</th>
+<th>Điểm cần tìm</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Cách chạy, cổng và phạm vi frontend</td>
+<td><code>README.md</code>, <code>run.py</code></td>
+<td><code>NAMES</code>, <code>MEMBERS</code>, <code>main</code>, vòng kiểm tra nội bộ</td>
+</tr>
+<tr>
+<td>Phân công thực hiện ban đầu</td>
+<td><code>KTHDV.docx</code></td>
+<td>Bảng họ tên, MSSV, phần phụ trách</td>
+</tr>
+<tr>
+<td>Identity</td>
+<td><code>python/identity/main.py</code></td>
+<td><code>SCHEMA</code>, <code>Register</code>, <code>login</code>, <code>set_status</code></td>
+</tr>
+<tr>
+<td>Xác thực và dữ liệu Python</td>
+<td><code>python/common.py</code></td>
+<td><code>user</code>, <code>admin</code>, <code>password_hash</code>, <code>owned</code>, <code>database</code>, <code>money</code></td>
+</tr>
+<tr>
+<td>Ledger</td>
+<td><code>python/ledger/main.py</code></td>
+<td><code>insert_transaction</code>, <code>reverse_in_db</code>, <code>transfer</code>, <code>dispatch</code></td>
+</tr>
+<tr>
+<td>Planning</td>
+<td><code>javascript/planning/main.js</code>, <code>usage.js</code></td>
+<td><code>budgetValues</code>, <code>evaluate</code>, <code>usage</code>, <code>contributions</code></td>
+</tr>
+<tr>
+<td>Schema Planning</td>
+<td><code>javascript/planning/service.json</code></td>
+<td><code>schema</code> và các hành động</td>
+</tr>
+<tr>
+<td>Recurring</td>
+<td><code>javascript/recurring/main.js</code>, <code>service.json</code></td>
+<td><code>nextDate</code>, <code>reminders</code>, <code>paid</code>, <code>suggestions</code>, <code>schema</code></td>
+</tr>
+<tr>
+<td>HTTP và dữ liệu Node.js</td>
+<td><code>javascript/common.js</code></td>
+<td><code>start</code>, <code>peer</code>, <code>records</code>, <code>transaction</code>, <code>owned</code></td>
+</tr>
+<tr>
+<td>FX</td>
+<td><code>php/fx/index.php</code>, <code>service.json</code></td>
+<td><code>converted</code>, <code>/rates</code>, <code>/convert</code>, <code>schema</code></td>
+</tr>
+<tr>
+<td>Reporting</td>
+<td><code>php/reporting/index.php</code>, <code>service.json</code></td>
+<td><code>report_data</code>, <code>/dashboard</code>, <code>/compare</code>, <code>_csv</code></td>
+</tr>
+<tr>
+<td>HTTP và dữ liệu PHP</td>
+<td><code>php/common.php</code></td>
+<td><code>serve</code>, <code>peer</code>, <code>ledger_records</code>, <code>sum_money</code>, <code>display_money</code></td>
+</tr>
+<tr>
+<td>Phiên và chuyển tiếp frontend</td>
+<td><code>template/src/lib/backend.ts</code>, <code>session.ts</code></td>
+<td><code>allowed</code>, <code>cookieOptions</code>, <code>currentUser</code></td>
+</tr>
+<tr>
+<td>Xử lý yêu cầu frontend</td>
+<td><code>template/src/app/api/[service]/[...path]/route.ts</code></td>
+<td><code>handle</code>, lưu cookie và chuyển Bearer token</td>
+</tr>
+<tr>
+<td>Giao diện ngân sách và định kỳ</td>
+<td><code>template/src/components/finance/planning.tsx</code>, <code>recurring.tsx</code></td>
+<td>Nút đánh giá, nhắc hạn và ghi khoản chi riêng</td>
+</tr>
+<tr>
+<td>Cổng quản trị</td>
+<td><code>giao_dien/main.js</code></td>
+<td>Chuyển tiếp yêu cầu theo dịch vụ</td>
+</tr>
+</tbody></table>
+<p><strong>Kết quả của lần biên soạn:</strong> Đã đọc mã nguồn và đối chiếu trách nhiệm, dữ liệu, API, luồng gọi cùng các giới hạn được nêu trong tài liệu. Chưa kiểm thử lại toàn hệ thống, chưa đo hiệu năng và chưa xác nhận kết quả demo trên database chạy thật trong lần này.</p>
+<a class="top" href="#muc-1">Về đầu tài liệu</a></main></body></html>
