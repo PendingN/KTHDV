@@ -400,7 +400,7 @@
           amount: v.amount, occurred_on: v.occurred_on, note: v.note};
         if (t) {
           await api('ledger', `/transactions/${t.id}/adjust`, {method: 'POST', body});
-          notice('Đã điều chỉnh giao dịch (bút toán đảo và giao dịch mới).', true);
+          notice('Đã điều chỉnh: hoàn lại giao dịch cũ và tạo giao dịch mới.', true);
         } else {
           await api('ledger', '/transactions', {method: 'POST', body, headers: {'Idempotency-Key': crypto.randomUUID()}});
           notice('Đã ghi giao dịch.', true);
@@ -434,9 +434,9 @@
     }
     function editTransaction(t) { mount('tx-form', transactionForm(t)); }
     async function reverseTransaction(t) {
-      if (!confirm('Hủy giao dịch này bằng một bút toán đảo?')) return;
+      if (!confirm('Hủy và hoàn lại giao dịch này? Lịch sử gốc vẫn được giữ.')) return;
       await api('ledger', `/transactions/${t.id}/reverse`, {method: 'POST'});
-      notice('Đã hủy giao dịch bằng bút toán đảo.', true); await loadTransactions();
+      notice('Đã hủy và hoàn lại giao dịch.', true); await loadTransactions();
     }
 
     // ---- Ngân sách

@@ -122,7 +122,7 @@ export function Transactions({
                     {t.note || "Không có ghi chú"}
                     <p className="text-xs text-muted-foreground">
                       {t.reversal_of
-                        ? "Bút toán đảo của #" + t.reversal_of
+                        ? "Hoàn lại giao dịch #" + t.reversal_of
                         : "#" + t.id}
                     </p>
                   </div>,
@@ -156,7 +156,7 @@ export function Transactions({
                         Điều chỉnh
                       </Button>
                       <Action
-                        confirm="Hủy giao dịch bằng bút toán đảo? Lịch sử gốc vẫn được giữ."
+                        confirm="Hủy và hoàn lại giao dịch này? Lịch sử gốc vẫn được giữ."
                         run={() =>
                           api("ledger", "/transactions/" + t.id + "/reverse", {
                             method: "POST",
@@ -202,7 +202,7 @@ export function Transactions({
           title={edit.item ? "Điều chỉnh giao dịch" : "Ghi thu / chi"}
           description={
             edit.item
-              ? "Tạo bút toán đảo và giao dịch mới; giữ lịch sử gốc."
+              ? "Hoàn lại giao dịch cũ và tạo giao dịch mới; giữ nguyên lịch sử."
               : "Dùng dấu chấm cho số thập phân."
           }
           initial={initial}

@@ -149,7 +149,7 @@ export function Dashboard() {
                 t.occurred_on,
                 t.note || "Không có ghi chú",
                 t.reversal_of
-                  ? "Bút toán đảo"
+                  ? "Giao dịch hoàn lại"
                   : t.kind === "income"
                     ? "Thu nhập"
                     : t.kind === "expense"

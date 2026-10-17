@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS pending_events (
     {"label": "Xem số dư ví", "method": "GET", "path": "/wallets", "body": None},
     {"label": "Đổi tên hoặc ngừng dùng ví", "method": "PATCH", "path": "/wallets/{id}", "body": {"name": "Ví chính", "active": True}},
     {"label": "Đổi tên hoặc ngừng dùng danh mục", "method": "PATCH", "path": "/categories/{id}", "body": {"name": "Ăn uống", "active": True}},
-    {"label": "Hủy bằng bút toán đảo", "method": "POST", "path": "/transactions/{id}/reverse", "body": None},
+    {"label": "Hủy và hoàn lại giao dịch", "method": "POST", "path": "/transactions/{id}/reverse", "body": None},
     {"label": "Điều chỉnh giao dịch", "method": "POST", "path": "/transactions/{id}/adjust", "body": {"wallet_id": 1, "category_id": 1, "kind": "expense", "amount": "40000", "occurred_on": "2026-10-05", "note": "Sửa số tiền"}},
 ])
 

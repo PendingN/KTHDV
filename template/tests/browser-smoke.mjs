@@ -157,7 +157,7 @@ try {
   await page.reload();
   await page.waitForLoadState("networkidle");
   await visible(
-    "Bút toán đảo của #" +
+    "Hoàn lại giao dịch #" +
       (await data("ledger/transactions")).find(
         (t) => t.note === "Bữa trưa điều chỉnh QA",
       ).id,
