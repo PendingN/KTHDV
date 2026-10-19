@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { api, ApiError } from "@/lib/api";
 import type { Conversion, Rate } from "@/lib/contracts";
-import { today } from "@/lib/money";
+import { formatDecimal, today } from "@/lib/money";
 import { ListSkeleton, TableSkeleton } from "./loading";
 import {
   Page,
@@ -87,10 +87,10 @@ export function Exchange() {
           ) : result ? (
             <div className="motion-feedback space-y-4">
               <p className="text-sm text-muted-foreground">
-                {result.amount} {result.base}
+                {formatDecimal(result.amount, result.base)} {result.base}
               </p>
               <p className="break-words text-3xl font-semibold tracking-tight">
-                {result.converted_amount} {result.quote}
+                {formatDecimal(result.converted_amount, result.quote)} {result.quote}
               </p>
               <p className="text-sm">
                 1 {result.base} = {result.rate} {result.quote}

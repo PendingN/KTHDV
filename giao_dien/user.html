@@ -587,7 +587,8 @@
       ], 'Quy đổi', async v => {
         const r = await api('fx', '/convert', {method: 'POST', body: {base: v.base, quote: v.quote, amount: v.amount, as_of: v.as_of}});
         const result = document.createElement('div'); result.className = 'result';
-        result.textContent = `${r.amount} ${r.base} = ${r.converted_amount} ${r.quote}\nTỷ giá ${r.rate}, hiệu lực từ ${r.effective_on}, nguồn: ${r.source}`;
+        const fmt = (value, currency) => Number(value).toLocaleString('vi-VN', {minimumFractionDigits: SCALES[currency] ?? 0, maximumFractionDigits: SCALES[currency] ?? 0});
+        result.textContent = `${fmt(r.amount, r.base)} ${r.base} = ${fmt(r.converted_amount, r.quote)} ${r.quote}\nTỷ giá ${r.rate}, hiệu lực từ ${r.effective_on}, nguồn: ${r.source}`;
         mount('convert-result', result);
       });
     }
@@ -631,8 +632,10 @@
           'Chưa có gợi ý. Cần ít nhất 3 lần chi cùng tên, cùng số tiền, cách nhau khoảng một tháng.'));
       });
       $('rep-view').onclick = () => run(async () => {
-        const data = await api('reporting', '/reports', {query: reportRange()});
+        const range = reportRange();
+        const data = await api('reporting', '/reports', {query: range});
         mount('report-output', totalsTable(data.by_currency), hint(`${data.record_count} bản ghi trong kỳ.`));
+        await api('reporting', '/reports/requests', {method: 'POST', body: range});
       });
       $('rep-csv').onclick = () => run(async () => {
         const range = reportRange();

@@ -79,6 +79,8 @@ class Transfer(Model):
     from_wallet: Annotated[int, Field(gt=0)]
     to_wallet: Annotated[int, Field(gt=0)]
     amount: PositiveMoney
+    # Chỉ nhập khi hai ví khác tiền tệ: số tiền thực nhận bằng tiền của ví đích.
+    received_amount: PositiveMoney | None = None
     occurred_on: date
 
 
@@ -199,13 +201,17 @@ def transfer(payload: Transfer, current: User):
         target = owned(db, "wallets", payload.to_wallet, current["id"])
         require(source["id"] != target["id"], "Hai ví phải khác nhau")
         require(source["active"] and target["active"], "Ví đã ngừng dùng")
-        require(source["currency"] == target["currency"], "Bản cơ bản chỉ chuyển giữa ví cùng tiền tệ")
+        same_currency = source["currency"] == target["currency"]
+        require(same_currency or payload.received_amount is not None, "Ví khác tiền tệ cần nhập số tiền thực nhận")
+        require(not same_currency or payload.received_amount is None, "Ví cùng tiền tệ không cần số tiền thực nhận")
         amount = money(payload.amount, source["currency"])
+        received = amount if same_currency else money(payload.received_amount, target["currency"])
+        note = "Chuyển giữa ví" if same_currency else f"Chuyển {source['currency']} sang {target['currency']}"
         cursor = execute(db, "INSERT INTO transactions(user_id,wallet_id,kind,amount_minor,currency,occurred_on,note) VALUES(%s,%s,%s,%s,%s,%s,%s)", (
-            current["id"], source["id"], "transfer", amount, source["currency"], payload.occurred_on.isoformat(), "Chuyển giữa ví"))
+            current["id"], source["id"], "transfer", amount, source["currency"], payload.occurred_on.isoformat(), note))
         many(db, "INSERT INTO entries(transaction_id,wallet_id,delta_minor) VALUES(%s,%s,%s)", (
-            (cursor.lastrowid, source["id"], -amount), (cursor.lastrowid, target["id"], amount)))
-        return {"id": cursor.lastrowid, "amount_minor": amount}
+            (cursor.lastrowid, source["id"], -amount), (cursor.lastrowid, target["id"], received)))
+        return {"id": cursor.lastrowid, "amount_minor": amount, "received_minor": received, "received_currency": target["currency"]}
 
 
 def transaction_list(user_id, start, end, limit, offset):

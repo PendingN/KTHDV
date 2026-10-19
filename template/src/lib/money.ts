@@ -14,6 +14,15 @@ export function amountInput(value: Minor, currency: Currency): string {
     (scale ? "." + String(absolute % divisor).padStart(scale, "0") : "")
   );
 }
+// Định dạng số thập phân dạng chuỗi (ví dụ kết quả quy đổi "2586940" hoặc "100.00"): 2.586.940 hoặc 100,00.
+export function formatDecimal(value: string, currency: Currency): string {
+  const scale = scales[currency];
+  const [whole, fraction = ""] = value.split(".");
+  return (
+    BigInt(whole).toLocaleString("vi-VN") +
+    (scale ? "," + fraction.padEnd(scale, "0") : "")
+  );
+}
 export function formatMoney(value: Minor, currency: Currency): string {
   const [whole, fraction] = amountInput(value, currency).split(".");
   const negativeZero = whole === "-0";
