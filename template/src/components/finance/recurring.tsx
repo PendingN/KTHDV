@@ -15,7 +15,6 @@ import {
   Action,
   Notice,
   useResource,
-  currencyOptions,
 } from "./common";
 const periods = {
   weekly: "Hằng tuần",
@@ -189,7 +188,7 @@ export function Recurring() {
               : suggestion
                 ? amountInput(suggestion.amount_minor, suggestion.currency)
                 : "",
-            currency: s?.currency || suggestion?.currency || "VND",
+            currency: "VND",
             period: s?.period || "monthly",
             next_due: s?.next_due || today(),
             remind_days: String(s?.remind_days ?? 3),
@@ -197,7 +196,6 @@ export function Recurring() {
           fields={[
             { name: "name", label: "Tên khoản định kỳ" },
             { name: "amount", label: "Số tiền", money: true },
-            { name: "currency", label: "Tiền tệ", options: currencyOptions },
             {
               name: "period",
               label: "Chu kỳ",

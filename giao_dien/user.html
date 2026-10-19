@@ -337,9 +337,8 @@
         [c.name, KIND[c.kind], ACTIVE_TEXT(c.active), cell(button('Sửa', () => editCategory(c)))])));
       mount('wallet-create', form([
         {name: 'name', label: 'Tên ví', attrs: {maxLength: 120}},
-        {name: 'currency', label: 'Tiền tệ', options: CURRENCY_OPTIONS},
       ], 'Tạo ví', async v => {
-        await api('ledger', '/wallets', {method: 'POST', body: {name: v.name, currency: v.currency}});
+        await api('ledger', '/wallets', {method: 'POST', body: {name: v.name, currency: 'VND'}});
         notice('Đã tạo ví.', true); await loadWallets();
       }));
       mount('category-create', form([
@@ -460,13 +459,12 @@
       return form([
         {name: 'name', label: 'Tên ngân sách', value: b?.name ?? '', attrs: {maxLength: 120}},
         {name: 'category_id', label: 'Danh mục chi', options: categoryOptions('expense'), value: b ? String(b.category_id) : undefined},
-        {name: 'currency', label: 'Tiền tệ', options: CURRENCY_OPTIONS, value: b?.currency ?? 'VND'},
         {name: 'limit_amount', label: 'Hạn mức', attrs: AMOUNT_ATTRS, value: b ? plain(b.limit_minor, b.currency) : undefined},
         {name: 'start_on', label: 'Từ ngày', type: 'date', value: b?.start_on ?? monthStart()},
         {name: 'end_on', label: 'Đến ngày', type: 'date', value: b?.end_on ?? monthEnd()},
         {name: 'threshold', label: 'Ngưỡng cảnh báo (%)', type: 'number', attrs: {min: 1, max: 100, step: 1}, value: b?.threshold ?? 80},
       ], b ? 'Lưu ngân sách' : 'Tạo ngân sách', async v => {
-        const body = {name: v.name, category_id: Number(v.category_id), currency: v.currency, limit_amount: v.limit_amount,
+        const body = {name: v.name, category_id: Number(v.category_id), currency: 'VND', limit_amount: v.limit_amount,
           start_on: v.start_on, end_on: v.end_on, threshold: Number(v.threshold)};
         if (b) { await api('planning', `/budgets/${b.id}`, {method: 'PUT', body}); notice('Đã cập nhật ngân sách.', true); }
         else { await api('planning', '/budgets', {method: 'POST', body}); notice('Đã tạo ngân sách.', true); }
@@ -495,11 +493,10 @@
       $('goal-title').textContent = g ? 'Sửa mục tiêu' : 'Thêm mục tiêu';
       return form([
         {name: 'name', label: 'Tên mục tiêu', value: g?.name ?? '', attrs: {maxLength: 120}},
-        {name: 'currency', label: 'Tiền tệ', options: CURRENCY_OPTIONS, value: g?.currency ?? 'VND'},
         {name: 'target_amount', label: 'Số tiền mục tiêu', attrs: AMOUNT_ATTRS, value: g ? plain(g.target_minor, g.currency) : undefined},
         {name: 'deadline', label: 'Hạn hoàn thành', type: 'date', value: g?.deadline},
       ], g ? 'Lưu mục tiêu' : 'Tạo mục tiêu', async v => {
-        const body = {name: v.name, currency: v.currency, target_amount: v.target_amount, deadline: v.deadline};
+        const body = {name: v.name, currency: 'VND', target_amount: v.target_amount, deadline: v.deadline};
         if (g) { await api('planning', `/goals/${g.id}`, {method: 'PUT', body}); notice('Đã cập nhật mục tiêu.', true); }
         else { await api('planning', '/goals', {method: 'POST', body}); notice('Đã tạo mục tiêu.', true); }
         await loadGoals();
@@ -535,12 +532,11 @@
       return form([
         {name: 'name', label: 'Tên khoản', value: s?.name ?? '', attrs: {maxLength: 120}},
         {name: 'amount', label: 'Số tiền', attrs: AMOUNT_ATTRS, value: s ? plain(s.amount_minor, s.currency) : undefined},
-        {name: 'currency', label: 'Tiền tệ', options: CURRENCY_OPTIONS, value: s?.currency ?? 'VND'},
         {name: 'period', label: 'Chu kỳ', options: Object.entries(PERIOD), value: s?.period ?? 'monthly'},
         {name: 'next_due', label: 'Đến hạn kế tiếp', type: 'date', value: s?.next_due ?? ymd(new Date())},
         {name: 'remind_days', label: 'Nhắc trước (ngày)', type: 'number', attrs: {min: 0, max: 30, step: 1}, value: s?.remind_days ?? 3},
       ], s?.id ? 'Lưu khoản' : 'Tạo khoản', async v => {
-        const body = {name: v.name, amount: v.amount, currency: v.currency, period: v.period, next_due: v.next_due, remind_days: Number(v.remind_days)};
+        const body = {name: v.name, amount: v.amount, currency: 'VND', period: v.period, next_due: v.next_due, remind_days: Number(v.remind_days)};
         if (s?.id) { await api('recurring', `/subscriptions/${s.id}`, {method: 'PUT', body}); notice('Đã cập nhật khoản định kỳ.', true); }
         else { await api('recurring', '/subscriptions', {method: 'POST', body}); notice('Đã tạo khoản định kỳ.', true); }
         await loadSubscriptions();

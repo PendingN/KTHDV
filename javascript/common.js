@@ -27,7 +27,7 @@ export function text(value, max = 120) {
   return value.trim();
 }
 export function currency(value = 'VND') {
-  requireThat(Object.hasOwn(scales, value), 'Tiền tệ không hợp lệ');
+  requireThat(value === 'VND', 'Chỉ hỗ trợ tiền Việt (VND)');
   return value;
 }
 export function date(value) {

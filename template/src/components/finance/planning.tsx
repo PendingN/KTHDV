@@ -15,7 +15,6 @@ import {
   Action,
   Notice,
   useResource,
-  currencyOptions,
   type Field,
   type Values,
 } from "./common";
@@ -41,7 +40,7 @@ export function Planning() {
     initial = {
       name: b?.name || "",
       category_id: String(b?.category_id || expenses[0]?.id || ""),
-      currency: b?.currency || "VND",
+      currency: "VND",
       limit_amount: b ? amountInput(b.limit_minor, b.currency) : "",
       start_on: b?.start_on || monthRange().start,
       end_on: b?.end_on || monthRange().end,
@@ -61,12 +60,6 @@ export function Planning() {
     fields = [
       { name: "name", label: "Tên ngân sách" },
       { name: "category_id", label: "Danh mục chi", options, disabled: !!b },
-      {
-        name: "currency",
-        label: "Tiền tệ",
-        options: currencyOptions,
-        disabled: !!b,
-      },
       { name: "limit_amount", label: "Hạn mức", money: true },
       { name: "start_on", label: "Bắt đầu", type: "date", disabled: !!b },
       { name: "end_on", label: "Kết thúc", type: "date", disabled: !!b },
@@ -82,18 +75,12 @@ export function Planning() {
     const g = edit.goal;
     initial = {
       name: g?.name || "",
-      currency: g?.currency || "VND",
+      currency: "VND",
       target_amount: g ? amountInput(g.target_minor, g.currency) : "",
       deadline: g?.deadline || today(),
     };
     fields = [
       { name: "name", label: "Tên mục tiêu" },
-      {
-        name: "currency",
-        label: "Tiền tệ",
-        options: currencyOptions,
-        disabled: !!g,
-      },
       { name: "target_amount", label: "Số tiền mục tiêu", money: true },
       { name: "deadline", label: "Ngày mục tiêu", type: "date" },
     ];

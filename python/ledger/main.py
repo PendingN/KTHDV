@@ -53,7 +53,8 @@ CREATE TABLE IF NOT EXISTS pending_events (
 
 class Wallet(Model):
     name: Name
-    currency: Currency = "VND"
+    # Hiện chỉ hỗ trợ ví tiền Việt; ví ngoại tệ đã tạo trước đây vẫn đọc được.
+    currency: Literal["VND"] = "VND"
 
 
 class Category(Model):

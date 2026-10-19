@@ -13,7 +13,6 @@ import {
   DataTable,
   Editor,
   Action,
-  currencyOptions,
   useResource,
 } from "./common";
 export function Accounts() {
@@ -154,13 +153,7 @@ export function Accounts() {
             { name: "name", label: "Tên" },
             ...(!edit.item
               ? edit.type === "wallets"
-                ? [
-                    {
-                      name: "currency",
-                      label: "Tiền tệ",
-                      options: currencyOptions,
-                    },
-                  ]
+                ? []
                 : [
                     {
                       name: "kind",
@@ -183,7 +176,7 @@ export function Accounts() {
                 body: edit.item
                   ? { name: v.name, active: !!edit.item.active }
                   : edit.type === "wallets"
-                    ? { name: v.name, currency: v.currency }
+                    ? { name: v.name, currency: "VND" }
                     : { name: v.name, kind: v.kind },
               },
             );
