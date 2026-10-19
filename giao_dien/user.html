@@ -587,7 +587,8 @@
       ], 'Quy đổi', async v => {
         const r = await api('fx', '/convert', {method: 'POST', body: {base: v.base, quote: v.quote, amount: v.amount, as_of: v.as_of}});
         const result = document.createElement('div'); result.className = 'result';
-        result.textContent = `${r.amount} ${r.base} = ${r.converted_amount} ${r.quote}\nTỷ giá ${r.rate}, hiệu lực từ ${r.effective_on}, nguồn: ${r.source}`;
+        const fmt = (value, currency) => Number(value).toLocaleString('vi-VN', {minimumFractionDigits: SCALES[currency] ?? 0, maximumFractionDigits: SCALES[currency] ?? 0});
+        result.textContent = `${fmt(r.amount, r.base)} ${r.base} = ${fmt(r.converted_amount, r.quote)} ${r.quote}\nTỷ giá ${r.rate}, hiệu lực từ ${r.effective_on}, nguồn: ${r.source}`;
         mount('convert-result', result);
       });
     }
