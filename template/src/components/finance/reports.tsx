@@ -77,10 +77,6 @@ export function Reports() {
         <ResourceState resource={report} fallback={<TableSkeleton />} />
         {report.data && (
           <>
-            <p className="mb-4 text-xs text-muted-foreground">
-              {report.data.start} đến {report.data.end} ·{" "}
-              {report.data.record_count} bút toán
-            </p>
             <TotalsTable report={report.data} />
           </>
         )}
