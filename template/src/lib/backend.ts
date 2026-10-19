@@ -44,7 +44,10 @@ const routes: Record<string, [RegExp, string[]][]> = {
     [/^\/rates$/, ["GET"]],
     [/^\/convert$/, ["POST"]],
   ],
-  reporting: [[/^\/(reports|dashboard|compare|reports\.csv)$/, ["GET"]]],
+  reporting: [
+    [/^\/(reports|dashboard|compare|reports\.csv)$/, ["GET"]],
+    [/^\/reports\/requests$/, ["POST"]],
+  ],
 };
 export function allowed(service: string, route: string, method: string) {
   return (
