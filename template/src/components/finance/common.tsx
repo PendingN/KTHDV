@@ -407,11 +407,13 @@ export function Action({
   run,
   confirm,
   onDone,
+  iconLabel,
 }: {
   children: ReactNode;
   run: () => Promise<unknown>;
   confirm?: string;
   onDone?: () => void;
+  iconLabel?: string;
 }) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -431,14 +433,16 @@ export function Action({
   return (
     <span className="inline-flex flex-col items-start gap-1">
       <Button
-        size="sm"
+        size={iconLabel ? "icon-sm" : "sm"}
         variant="outline"
+        aria-label={iconLabel}
+        title={iconLabel}
         disabled={busy}
         aria-busy={busy}
         onClick={act}
       >
         {busy && <Spinner />}
-        {busy ? "Đang xử lý…" : children}
+        {busy ? (iconLabel ? null : "Đang xử lý…") : children}
       </Button>
       {error && (
         <span role="alert" className="max-w-64 text-xs text-destructive">

@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS categories (
  id INTEGER PRIMARY KEY AUTO_INCREMENT, user_id INTEGER NOT NULL, name VARCHAR(120) NOT NULL,
  kind VARCHAR(12) NOT NULL CHECK(kind IN ('income','expense')), active INTEGER NOT NULL DEFAULT 1
 );
+CREATE TABLE IF NOT EXISTS category_defaults (
+ user_id INTEGER PRIMARY KEY
+);
 CREATE TABLE IF NOT EXISTS transactions (
  id INTEGER PRIMARY KEY AUTO_INCREMENT, user_id INTEGER NOT NULL, wallet_id INTEGER NOT NULL,
  category_id INTEGER, kind VARCHAR(12) NOT NULL,
@@ -49,6 +52,21 @@ CREATE TABLE IF NOT EXISTS pending_events (
     {"label": "Hủy và hoàn lại giao dịch", "method": "POST", "path": "/transactions/{id}/reverse", "body": None},
     {"label": "Điều chỉnh giao dịch", "method": "POST", "path": "/transactions/{id}/adjust", "body": {"wallet_id": 1, "category_id": 1, "kind": "expense", "amount": "40000", "occurred_on": "2026-10-05", "note": "Sửa số tiền"}},
 ])
+
+
+DEFAULT_EXPENSE_CATEGORIES = (
+    "Ăn uống",
+    "Chi tiêu hàng ngày",
+    "Quần áo",
+    "Mỹ phẩm",
+    "Phí giao lưu",
+    "Y tế",
+    "Giáo dục",
+    "Tiền điện",
+    "Đi lại",
+    "Phí liên lạc",
+    "Tiền nhà",
+)
 
 
 class Wallet(Model):
@@ -112,7 +130,16 @@ def create_category(payload: Category, current: User):
 @app.get("/categories")
 def categories(current: User):
     with database("ledger") as db:
-        return rows(db, "SELECT * FROM categories WHERE user_id=%s", (current["id"],))
+        # The marker serializes concurrent requests and preserves later renames/deactivations.
+        first_visit = execute(db, "INSERT IGNORE INTO category_defaults(user_id) VALUES(%s)", (current["id"],))
+        if first_visit.rowcount:
+            existing = {row["name"].strip().casefold() for row in rows(
+                db, "SELECT name FROM categories WHERE user_id=%s AND kind='expense'", (current["id"],))}
+            missing = [(current["id"], name, "expense") for name in DEFAULT_EXPENSE_CATEGORIES
+                       if name.casefold() not in existing]
+            if missing:
+                many(db, "INSERT INTO categories(user_id,name,kind) VALUES(%s,%s,%s)", missing)
+        return rows(db, "SELECT * FROM categories WHERE user_id=%s ORDER BY id", (current["id"],))
 
 
 def rename(table, record_id, payload, current):

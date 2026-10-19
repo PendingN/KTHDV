@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { PlusIcon } from "lucide-react";
+import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import type { Category, Transaction, Wallet } from "@/lib/contracts";
@@ -149,13 +149,16 @@ export function Transactions({
                   !reversed.has(t.id) ? (
                     <div key="actions" className="flex flex-wrap gap-2">
                       <Button
-                        size="sm"
+                        size="icon-sm"
                         variant="outline"
+                        aria-label="Điều chỉnh"
+                        title="Điều chỉnh"
                         onClick={() => setEdit({ item: t })}
                       >
-                        Điều chỉnh
+                        <PencilIcon aria-hidden="true" />
                       </Button>
                       <Action
+                        iconLabel="Hủy giao dịch"
                         confirm="Hủy và hoàn lại giao dịch này? Lịch sử gốc vẫn được giữ."
                         run={() =>
                           api("ledger", "/transactions/" + t.id + "/reverse", {
@@ -164,7 +167,7 @@ export function Transactions({
                         }
                         onDone={transactions.reload}
                       >
-                        Hủy giao dịch
+                        <Trash2Icon aria-hidden="true" />
                       </Action>
                     </div>
                   ) : (
